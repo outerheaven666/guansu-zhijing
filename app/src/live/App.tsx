@@ -364,11 +364,17 @@ function LiveApp() {
           正在展示 @{active.event.nickname} · 剩 {active.remaining}s
         </span>
       )}
-      {queue.slice(0, 8).map((e, i) => (
-        <span key={e.id} className="rounded-full border hairline px-2.5 py-1 ink-sub">
-          #{i + 1} @{e.nickname} · {tierOfDiamond(e.diamond).serviceName}
-        </span>
-      ))}
+      {queue.slice(0, 8).map((e, i) => {
+        // 预估等待 = 当前展示剩余 + 前面每个人签档的展示时长
+        const waitSec = (active?.remaining ?? 0)
+          + queue.slice(0, i).reduce((s, q) => s + tierOfDiamond(q.diamond).displaySeconds, 0);
+        const waitLabel = waitSec >= 60 ? `约等 ${Math.round(waitSec / 60)} 分钟` : `约等 ${waitSec}s`;
+        return (
+          <span key={e.id} className="rounded-full border hairline px-2.5 py-1 ink-sub">
+            #{i + 1} @{e.nickname} · {tierOfDiamond(e.diamond).serviceName} · {waitLabel}
+          </span>
+        );
+      })}
       {queue.length > 8 && <span className="ink-sub">…共 {queue.length} 位在排</span>}
     </div>
   ) : null;
