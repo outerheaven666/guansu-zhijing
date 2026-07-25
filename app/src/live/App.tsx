@@ -186,7 +186,8 @@ function LiveApp() {
     }
   }, []);
 
-  // 对接模式：BroadcastChannel + window.__gzLiveGift
+  // 对接模式：① 本地直播服务 SSE（同源 /api/events） ② BroadcastChannel ③ window.__gzLiveGift
+  const [relayOk, setRelayOk] = useState(false);
   useEffect(() => {
     window.__gzLiveGift = (e) => ingest(e);
     const bc = new BroadcastChannel(CHANNEL);
@@ -197,7 +198,29 @@ function LiveApp() {
       }
     };
     trackEvent('page_view', { app: 'live' });
-    return () => bc.close();
+
+    // 探测本地直播服务：页面由 live-relay 托管时同源可用
+    let es: EventSource | null = null;
+    fetch('/api/health')
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('no relay'))))
+      .then(() => {
+        setRelayOk(true);
+        es = new EventSource('/api/events');
+        es.addEventListener('gift', (ev) => {
+          try {
+            const d = JSON.parse((ev as MessageEvent).data);
+            ingest({ id: String(d.id), nickname: String(d.nickname), giftName: String(d.giftName), diamond: Number(d.diamond) || 0 });
+          } catch {
+            /* 忽略坏帧 */
+          }
+        });
+      })
+      .catch(() => setRelayOk(false));
+
+    return () => {
+      bc.close();
+      es?.close();
+    };
   }, [ingest]);
 
   // 队列调度：无活动时取下一个，按档位展示
@@ -309,23 +332,37 @@ function LiveApp() {
             {/* 对接说明 */}
             {mode === 'hook' && (
               <div className="paper-card rounded-xl p-4 text-[11px] leading-relaxed ink-sub">
-                <div className="text-sm font-bold ink-title">礼物数据对接（两条路径）</div>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block h-2 w-2 rounded-full ${relayOk ? 'bg-green-600' : 'bg-gray-400'}`} />
+                  <span className="text-sm font-bold ink-title">
+                    本地直播服务{relayOk ? '已连接（真实事件流）' : '未连接（运行 npm run live 启动）'}
+                  </span>
+                </div>
                 <p className="mt-2">
-                  <span className="font-bold text-pine">① 官方路径（推荐）：</span>
-                  以企业主体申请抖音开放平台「直播小玩法 / 互动工具」能力，审核通过后将礼物事件 POST 到本页。本页监听：
+                  <span className="font-bold text-pine">① 真实直播间（测试号先行）：</span>
+                  本机运行 <code className="rounded bg-[hsl(var(--paper-deep))] px-1">npm run live</code>，
+                  OBS 浏览器源指向 <code className="rounded bg-[hsl(var(--paper-deep))] px-1">http://localhost:7210/live/</code>，
+                  再按《真实直播间接入指南》安装礼物连接器（油猴脚本），礼物事件即实时上屏并落盘存档。
+                </p>
+                <p className="mt-2">
+                  <span className="font-bold text-pine">② 官方路径（正式经营）：</span>
+                  企业主体申请抖音开放平台「直播小玩法 / 互动工具」，审核后将事件 POST 到本页。本页监听：
                 </p>
                 <pre className="paper-card-deep mt-1 overflow-x-auto rounded-md p-2 text-[10px]">
-{`// 方式 A：同浏览器 BroadcastChannel
+{`// 方式 A：HTTP POST（直播服务）
+POST http://localhost:7210/api/gift
+{ "id":"...", "nickname":"...", "giftName":"...", "diamond":99 }
+// 方式 B：同浏览器 BroadcastChannel
 new BroadcastChannel('gz-live-gifts')
   .postMessage({ type:'gift', id, nickname, giftName, diamond });
-// 方式 B：页内函数（浏览器源注入 JS）
+// 方式 C：页内函数（浏览器源注入 JS）
 window.__gzLiveGift({ id, nickname, giftName, diamond });`}
                 </pre>
                 <p className="mt-2">
-                  <span className="font-bold text-cinnabar">② 灰色路径（风险自担）：</span>
-                  生态中存在抓取直播间弹幕/礼物的非官方库。此类方式违反平台协议风险高、可能封号，仅建议在测试号验证流程，正式经营请走路径①。
+                  <span className="font-bold text-cinnabar">风险提示：</span>
+                  非官方抓取方式违反平台协议风险高、可能封号，仅建议测试号验证流程，正式经营请走官方路径。
+                  事件字段：id（去重键）、nickname、giftName、diamond（总抖币）。队列上限 50，超出丢弃；同一 id 幂等。
                 </p>
-                <p className="mt-2">事件字段：id（去重键）、nickname、giftName、diamond（总抖币）。队列上限 50，超出丢弃；同一 id 幂等。</p>
               </div>
             )}
 
