@@ -48,7 +48,7 @@ export const GIFT_TIERS: GiftTier[] = [
     name: '高阶礼',
     minDiamond: 200,
     maxDiamond: 999,
-    examples: '火箭预备队 / 热气球',
+    examples: '热气球 / 浪漫马车',
     serviceName: '双镜签',
     serviceDesc: '节气签 + 执镜签双卡，加赠本年五运六气文化解读（医史视角，非医疗建议）',
     displaySeconds: 30,

@@ -319,11 +319,22 @@ function LiveApp() {
   ) : (
     <div className="text-center">
       <div className="font-brush text-5xl ink-title">以文会友</div>
-      <p className="mt-4 max-w-sm text-sm leading-relaxed ink-sub">
-        刷礼物得专属文化签：节气签 · 执镜签 · 双镜签 · 典藏签
-        <br />
-        文化内容服务，不含预测、不含命理
-      </p>
+      <p className="mt-4 text-sm ink-sub">文化内容服务，不含预测、不含命理 · 签号唯一，昵称入卡</p>
+      {/* 刷什么 → 得什么：待机时常驻展示，观众一眼看懂 */}
+      <div className="mx-auto mt-6 max-w-md rounded-xl border-2 p-4 text-left" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
+        <div className="text-center text-sm font-bold text-cinnabar">刷什么 · 得什么</div>
+        <div className="mt-3 space-y-2.5">
+          {GIFT_TIERS.map((t) => (
+            <div key={t.id} className="flex items-baseline gap-2 text-xs">
+              <span className="w-36 shrink-0 ink-title font-bold">{t.examples}</span>
+              <span className="shrink-0 text-cinnabar">→</span>
+              <span className="shrink-0 font-bold text-cinnabar">{t.serviceName}</span>
+              <span className="ink-sub leading-relaxed">{t.perks[0]}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 text-center text-[10px] ink-sub">同一节气，一人一签：为你拈的候与雅事，和别人不一样</div>
+      </div>
       {queue.length > 0 && <p className="mt-3 text-sm text-cinnabar">准备中……排队 {queue.length} 位</p>}
     </div>
   );
