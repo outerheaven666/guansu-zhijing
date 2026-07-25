@@ -16,6 +16,17 @@ import { QUOTES } from '../src/shared/quotes';
 import { classify, detectCrisis, respond } from '../src/shared/engine';
 import { DUANYU_CARDS } from '../src/shared/narrative';
 import { currentTermName, drawQuoteFor, estimatePayoutYuan, tierOfDiamond } from '../src/live/tiers';
+import { LENS_CARDS, lensesForScene } from '../src/dingju/lenses';
+import {
+  checkDecisionRedFlags,
+  classifySentence,
+  detectScene,
+  emptyPaths,
+  onePageMarkdown,
+  reviewDue,
+  splitAndClassify,
+  type Decision,
+} from '../src/dingju/model';
 
 let passed = 0;
 let failed = 0;
@@ -112,6 +123,56 @@ check('执镜签必属当周主题', drawQuoteFor('青梅煮酒', 'choice').them
 check('当令节气：2026-07-26 → 大暑', currentTermName(new Date(2026, 6, 26)) === '大暑');
 check('当令节气：2026-02-10 → 立春', currentTermName(new Date(2026, 1, 10)) === '立春');
 check('当令节气：2026-01-03 → 小寒（岁首回绕）', currentTermName(new Date(2026, 0, 3)) === '小寒');
+
+console.log('— 定局：场景识别 —');
+check('跳槽/offer → 职业创业', detectScene('拿到两个 offer，要不要跳槽').scene === 'career');
+check('谈薪/合同 → 谈判竞争', detectScene('下周和客户谈合同条款，对方压价').scene === 'negotiation');
+check('借钱/父母 → 关系边界', detectScene('亲戚又来借钱，父母也劝我借').scene === 'relationship');
+
+console.log('— 定局：事实分层 —');
+check('「我觉得」→ 感受', classifySentence('我觉得他针对我') === 'feeling');
+check('「听说」→ 传闻', classifySentence('听说公司要裁员') === 'rumor');
+check('「希望」→ 愿望', classifySentence('希望最好能涨薪') === 'wish');
+check('「不确定」→ 未知', classifySentence('还不确定对方预算') === 'unknown');
+check('「应该」→ 假设', classifySentence('他应该会同意的') === 'assumption');
+check('含数字 → 事实', classifySentence('上月销售额 120 万') === 'fact');
+check('拆句分类：三段拆出三条', splitAndClassify('我被骗了钱。听说他要跑。希望还能追回来。').length === 3);
+
+console.log('— 定局：透镜库 —');
+check('透镜卡 ≥ 16 张', LENS_CARDS.length >= 16);
+check('每卡四元数据齐全', LENS_CARDS.every((c) => c.source && c.translation && c.applyWhen && c.avoidWhen));
+check('五部经典齐备', ['yijing', 'sunzi', 'mao', 'daodejing', 'zhuangzi'].every((t) => LENS_CARDS.some((c) => c.tradition === t)));
+check('场景选镜 3–5 张且传统不重复', (() => {
+  const ls = lensesForScene('career');
+  return ls.length >= 3 && ls.length <= 5 && new Set(ls.map((c) => c.tradition)).size === ls.length;
+})());
+check('每场景都能选到卡', (['career', 'negotiation', 'relationship'] as const).every((s) => lensesForScene(s).length >= 3));
+
+console.log('— 定局：红线与复盘 —');
+check('「梭哈」触发高风险财务阻断', checkDecisionRedFlags('我想梭哈全部积蓄')?.kind === 'investment');
+check('「不想活」触发危机硬阻断', checkDecisionRedFlags('我不想活了')?.kind === 'crisis');
+check('正常决策文本不误报', checkDecisionRedFlags('我在考虑要不要跳槽') === null);
+
+const mockDecision: Decision = {
+  id: 't1', title: '要不要跳槽', scene: 'career', what: '拿到 offer', want: '涨薪', fear: '不适应',
+  deadline: '两周', reversibility: '试用期可退', maxLoss: '3 个月工资',
+  entries: [
+    { id: 'e1', text: '新 offer 月薪 28000', type: 'fact' },
+    { id: 'e2', text: '听说对方加班严重', type: 'rumor' },
+    { id: 'e3', text: '还不知道团队构成', type: 'unknown' },
+  ],
+  lensNotes: { 'mao-maodun': '成长空间 vs 稳定' },
+  paths: emptyPaths(), dontList: ['不用运势替代事实'],
+  minAction: '约未来主管聊一次', successSignal: '聊完疑虑消除', stopSignal: '对方回避管理问题',
+  status: 'active', createdAt: Date.now(),
+};
+const md = onePageMarkdown(mockDecision);
+check('一页纸含全部六个章节', ['## 1) 局面判断', '## 2) 事实/假设', '## 3) 路径比较', '## 4) 不做清单', '## 5) 最小试错', '## 6) 复盘'].every((s) => md.includes(s)));
+check('一页纸含合规声明', md.includes('不构成医疗、法律、投资、心理建议'));
+check('一页纸事实/假设正确归栏', md.includes('新 offer 月薪 28000') && md.includes('[传闻] 听说对方加班严重'));
+check('复盘到期：新决策不到期', reviewDue(mockDecision) === null);
+check('复盘到期：8 天前 → 7 天档', reviewDue({ ...mockDecision, createdAt: Date.now() - 8 * 86400000 }) === '7');
+check('复盘到期：31 天前且 7 天已填 → 30 天档', reviewDue({ ...mockDecision, createdAt: Date.now() - 31 * 86400000, review7: { result: 'x', attribution: 'fact', principle: 'y', at: 1 } }) === '30');
 
 console.log(`\n结果：${passed} 通过，${failed} 失败`);
 process.exit(failed > 0 ? 1 : 0);

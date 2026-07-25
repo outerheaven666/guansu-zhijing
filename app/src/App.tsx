@@ -21,6 +21,15 @@ const APPS = [
     desc: '不是大师，是提问器：用庄子换视角、用道德经做减法、用孙子评估代价、用毛选逼你拿事实。',
     items: ['每次回答必有引文出处', '解释置信度 + 适用边界', '一个可执行小实验', '危机识别 · 直连专业资源'],
   },
+  {
+    href: './dingju/index.html',
+    mark: '定局',
+    name: '定局',
+    en: 'DING JU',
+    tagline: '决策工作台：看清局势再行动',
+    desc: '不做「告诉你命」的应用，做「让你更不容易自欺」的工具：事实分层、经典透镜、路径比较、一页纸、复盘闭环。',
+    items: ['事实 / 感受 / 假设 分层器', '五部经典的尖锐透镜卡', '一页纸输出可导出打印', '7/30 天复盘 → 个人原则库'],
+  },
 ];
 
 export default function App() {
@@ -42,14 +51,14 @@ export default function App() {
             观俗 <span className="text-cinnabar">·</span> 执镜
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed ink-sub sm:text-base">
-            一个做「理解」，一个做「提问」。
+            观俗做「理解」，执镜做「提问」，定局做「判断」。
             <br />
             不预测、不诊断、不承诺改命——把传统放回它本来的位置。
           </p>
         </div>
 
         {/* 两个应用 */}
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
+        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {APPS.map((app) => (
             <a key={app.name} href={app.href} className="group block">
               <div className="paper-card relative h-full rounded-xl p-6 transition-transform duration-200 group-hover:-translate-y-1 sm:p-8">
@@ -77,7 +86,7 @@ export default function App() {
 
         {/* 共同原则 */}
         <div className="paper-card-deep mt-12 rounded-xl p-6 sm:p-8">
-          <div className="text-sm font-bold text-cinnabar">两个应用共同遵守的原则</div>
+          <div className="text-sm font-bold text-cinnabar">三个应用共同遵守的原则</div>
           <div className="mt-4 grid gap-4 text-xs leading-relaxed ink-sub sm:grid-cols-3">
             <div>
               <div className="mb-1 font-bold ink-title">一 · 不做预测</div>
