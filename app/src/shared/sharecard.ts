@@ -11,6 +11,8 @@ export interface ShareCardData {
   customs: string;
   poemLine: string;
   poemSource: string;
+  /** 直播专属：昵称入卡 */
+  nickname?: string;
 }
 
 const KAI = '"Kaiti SC","KaiTi","STKaiti","Noto Serif SC","Songti SC",serif';
@@ -22,7 +24,7 @@ const PAPER = '#f6f1e5';
 const LINE = '#d8cdb4';
 
 /** 中文按字符宽度折行 */
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+export function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   let line = '';
   for (const ch of text) {
@@ -60,6 +62,12 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
   ctx.fillStyle = INK_SOFT;
   ctx.font = `24px ${KAI}`;
   ctx.fillText('观 俗 · 二 十 四 节 气', W / 2, 108);
+
+  if (d.nickname) {
+    ctx.fillStyle = CINNABAR;
+    ctx.font = `26px ${KAI}`;
+    ctx.fillText(`为  @${d.nickname}  制`, W / 2, 152);
+  }
 
   // 节气名
   ctx.fillStyle = INK;
@@ -109,4 +117,88 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
   // 页脚
   ctx.font = `20px ${KAI}`;
   ctx.fillText('文化理解，而非预测 · 观俗 GUANSU', W / 2, 1050);
+}
+
+/** ============ 执镜签（直播引文卡） ============ */
+
+export interface MirrorCardData {
+  nickname: string;
+  serviceName: string;   // 签品名，如「执镜签」
+  themeLabel: string;    // 本周主题，如「选择与纠结」
+  traditionName: string; // 庄子 / 道德经 / 孙子兵法 / 毛泽东选集
+  lens: string;          // 换视角 / 做减法 / 评估代价 / 逼拿事实
+  quoteText: string;
+  quoteSource: string;
+  ask: string;
+  experiment: string;
+}
+
+export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): void {
+  const W = 720;
+  const H = 1080;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = PAPER;
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(28, 28, W - 56, H - 56);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(40, 40, W - 72, H - 72);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = INK_SOFT;
+  ctx.font = `24px ${KAI}`;
+  ctx.fillText(`执 镜 · ${d.serviceName}`, W / 2, 104);
+
+  ctx.fillStyle = CINNABAR;
+  ctx.font = `28px ${KAI}`;
+  ctx.fillText(`赠  @${d.nickname}`, W / 2, 156);
+
+  ctx.fillStyle = INK_SOFT;
+  ctx.font = `22px ${KAI}`;
+  ctx.fillText(`本周主题 · ${d.themeLabel}    镜子 · ${d.traditionName}「${d.lens}」`, W / 2, 196);
+
+  ctx.fillStyle = CINNABAR;
+  ctx.fillRect(W / 2 - 40, 216, 80, 4);
+
+  // 引文（朱砂引号线 + 居中折行，最多 7 行）
+  ctx.fillStyle = CINNABAR;
+  ctx.fillRect(88, 268, 5, 300);
+  ctx.fillStyle = INK;
+  ctx.font = `34px ${KAI}`;
+  const qLines = wrapText(ctx, `「${d.quoteText}」`, W - 220).slice(0, 7);
+  qLines.forEach((l, i) => ctx.fillText(l, W / 2 + 12, 320 + i * 52));
+  ctx.fillStyle = INK_SOFT;
+  ctx.font = `24px ${KAI}`;
+  ctx.fillText(`—— ${d.quoteSource}`, W / 2 + 12, 330 + qLines.length * 52);
+
+  // 镜问
+  ctx.textAlign = 'left';
+  ctx.fillStyle = CINNABAR;
+  ctx.font = `24px ${KAI}`;
+  ctx.fillText('镜  问', 80, 660);
+  ctx.fillStyle = INK;
+  ctx.font = `26px ${KAI}`;
+  const aLines = wrapText(ctx, d.ask, W - 160).slice(0, 3);
+  aLines.forEach((l, i) => ctx.fillText(l, 80, 704 + i * 40));
+
+  // 小实验
+  ctx.fillStyle = '#3d5a52';
+  ctx.font = `24px ${KAI}`;
+  ctx.fillText('可执行小实验', 80, 660 + 52 + aLines.length * 40);
+  ctx.fillStyle = INK_SOFT;
+  ctx.font = `24px ${KAI}`;
+  const eLines = wrapText(ctx, d.experiment, W - 160).slice(0, 3);
+  const eY = 704 + 52 + aLines.length * 40;
+  eLines.forEach((l, i) => ctx.fillText(l, 80, eY + i * 38));
+
+  // 页脚
+  ctx.textAlign = 'center';
+  ctx.fillStyle = INK_SOFT;
+  ctx.font = `20px ${KAI}`;
+  ctx.fillText('引文只提供看问题的角度 · 不预测 不诊断 不承诺改命', W / 2, 1014);
+  ctx.fillText('执镜 ZHIJING', W / 2, 1046);
 }

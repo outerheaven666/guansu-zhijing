@@ -17,6 +17,7 @@ export default defineConfig({
         main: path.resolve(__dirname, "index.html"),
         guansu: path.resolve(__dirname, "guansu/index.html"),
         zhijing: path.resolve(__dirname, "zhijing/index.html"),
+        live: path.resolve(__dirname, "live/index.html"),
       },
     },
   },

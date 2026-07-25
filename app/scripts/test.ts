@@ -15,6 +15,7 @@ import { LIUQI, yunOfStem, EXHIBITS, QI_NARRATIVE } from '../src/shared/wuyunliu
 import { QUOTES } from '../src/shared/quotes';
 import { classify, detectCrisis, respond } from '../src/shared/engine';
 import { DUANYU_CARDS } from '../src/shared/narrative';
+import { currentTermName, drawQuoteFor, estimatePayoutYuan, tierOfDiamond } from '../src/live/tiers';
 
 let passed = 0;
 let failed = 0;
@@ -96,6 +97,21 @@ console.log('— 历法解释器综合 —');
 const today = readCalendar(2026, 7, 25);
 check('readCalendar 返回完整字段', !!(today.yearPillar && today.monthPillar && today.dayPillar && today.prevTerm && today.nextTerm));
 check('2026-07-25 已过大暑、未到立秋', today.prevTerm?.name === '大暑' && today.nextTerm?.name === '立秋', `${today.prevTerm?.name}/${today.nextTerm?.name}`);
+
+console.log('— 直播互动台：礼物分档 —');
+check('1 抖币 → 节气签（t1）', tierOfDiamond(1).id === 't1');
+check('49 抖币 → t1 边界', tierOfDiamond(49).id === 't1');
+check('50 抖币 → 执镜签（t2）', tierOfDiamond(50).id === 't2');
+check('200 抖币 → 双镜签（t3）', tierOfDiamond(200).id === 't3');
+check('1000 抖币 → 典藏签（t4）', tierOfDiamond(1000).id === 't4');
+check('99999 抖币 → t4 封顶', tierOfDiamond(99999).id === 't4');
+check('0/负值兜底为 t1', tierOfDiamond(0).id === 't1');
+check('分成估算：1000 抖币 ≈ ¥50', estimatePayoutYuan(1000) === 50);
+check('执镜签确定性：同昵称同主题同签', drawQuoteFor('青梅煮酒', 'choice').id === drawQuoteFor('青梅煮酒', 'choice').id);
+check('执镜签必属当周主题', drawQuoteFor('青梅煮酒', 'choice').themes.includes('choice'));
+check('当令节气：2026-07-26 → 大暑', currentTermName(new Date(2026, 6, 26)) === '大暑');
+check('当令节气：2026-02-10 → 立春', currentTermName(new Date(2026, 1, 10)) === '立春');
+check('当令节气：2026-01-03 → 小寒（岁首回绕）', currentTermName(new Date(2026, 0, 3)) === '小寒');
 
 console.log(`\n结果：${passed} 通过，${failed} 失败`);
 process.exit(failed > 0 ? 1 : 0);
