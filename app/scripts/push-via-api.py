@@ -52,7 +52,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "观众待机页常驻「刷什么·得什么」价目表：四档礼物与签品一目了然，数据取自分档配置自动同步",
+    "message": "直播页逻辑梳理：停留时长全线压缩（8/12/18/30s）+ 观众排队公示条（实时显示排第几）+ 签品大白话说明",
     "tree": tree["sha"],
     "parents": [base_sha],
 })

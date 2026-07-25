@@ -325,11 +325,14 @@ function LiveApp() {
         <div className="text-center text-sm font-bold text-cinnabar">刷什么 · 得什么</div>
         <div className="mt-3 space-y-2.5">
           {GIFT_TIERS.map((t) => (
-            <div key={t.id} className="flex items-baseline gap-2 text-xs">
-              <span className="w-36 shrink-0 ink-title font-bold">{t.examples}</span>
-              <span className="shrink-0 text-cinnabar">→</span>
-              <span className="shrink-0 font-bold text-cinnabar">{t.serviceName}</span>
-              <span className="ink-sub leading-relaxed">{t.perks[0]}</span>
+            <div key={t.id} className="text-xs">
+              <div className="flex items-baseline gap-2">
+                <span className="w-36 shrink-0 ink-title font-bold">{t.examples}</span>
+                <span className="shrink-0 text-cinnabar">→</span>
+                <span className="shrink-0 font-bold text-cinnabar">{t.serviceName}</span>
+                <span className="ink-sub">（约 {t.minDiamond}–{t.maxDiamond === Infinity ? '∞' : t.maxDiamond} 币）</span>
+              </div>
+              <div className="mt-0.5 pl-1 text-[11px] leading-relaxed ink-sub">{t.plainDesc}</div>
             </div>
           ))}
         </div>
@@ -339,10 +342,28 @@ function LiveApp() {
     </div>
   );
 
+  // 排队公示：刷礼物的人实时看到自己排第几、前面还有谁
+  const queueStrip = active || queue.length > 0 ? (
+    <div className="mt-4 flex max-w-3xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs">
+      {active && (
+        <span className="rounded-full bg-cinnabar px-2.5 py-1 font-bold text-[hsl(43_40%_96%)]">
+          正在展示 @{active.event.nickname} · 剩 {active.remaining}s
+        </span>
+      )}
+      {queue.slice(0, 8).map((e, i) => (
+        <span key={e.id} className="rounded-full border hairline px-2.5 py-1 ink-sub">
+          #{i + 1} @{e.nickname} · {tierOfDiamond(e.diamond).serviceName}
+        </span>
+      ))}
+      {queue.length > 8 && <span className="ink-sub">…共 {queue.length} 位在排</span>}
+    </div>
+  ) : null;
+
   if (clean) {
     return (
       <div className="ink-body flex min-h-screen flex-col items-center justify-center p-6">
         {stage}
+        {queueStrip}
       </div>
     );
   }
@@ -514,6 +535,7 @@ window.__gzLiveGift({ id, nickname, giftName, diamond });`}
               OBS 上屏区 · 浏览器源截取本卡片
             </div>
             {stage}
+            {queueStrip}
           </div>
         </div>
 

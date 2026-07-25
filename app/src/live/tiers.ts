@@ -16,7 +16,8 @@ export interface GiftTier {
   examples: string;      // 典型礼物示例
   serviceName: string;   // 签品名
   serviceDesc: string;   // 交付内容说明
-  displaySeconds: number; // 上屏展示时长
+  plainDesc: string;     // 给观众看的大白话说明
+  displaySeconds: number; // 上屏展示时长（宜短，防排队拥堵）
   perks: string[];       // 权益清单
 }
 
@@ -29,8 +30,9 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '小心心 / 玫瑰 / 啤酒',
     serviceName: '节气签',
     serviceDesc: '当令节气文化卡：昵称入卡，含干支、三候、民俗与诗句',
-    displaySeconds: 12,
-    perks: ['专属昵称节气卡 ×1', '上屏展示 12 秒'],
+    plainDesc: '一张写你名字的节气卡：今天什么节气、讲究什么，专为你拈一候一件雅事',
+    displaySeconds: 8,
+    perks: ['专属昵称节气卡 ×1', '上屏展示 8 秒'],
   },
   {
     id: 't2',
@@ -40,8 +42,9 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '你真好看 / 墨镜',
     serviceName: '执镜签',
     serviceDesc: '经典引文签：按本周直播主题，抽一条庄子/道德经/孙子/毛选原文，附出处、镜问与小实验',
-    displaySeconds: 18,
-    perks: ['专属昵称引文签 ×1', '含出处 + 镜问 + 小实验', '上屏展示 18 秒'],
+    plainDesc: '一句经典对你说的话 + 一个扎心提问 + 一件今晚就能试的小事',
+    displaySeconds: 12,
+    perks: ['专属昵称引文签 ×1', '含出处 + 镜问 + 小实验', '上屏展示 12 秒'],
   },
   {
     id: 't3',
@@ -51,8 +54,9 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '热气球 / 浪漫马车',
     serviceName: '双镜签',
     serviceDesc: '节气签 + 执镜签双卡，加赠本年五运六气文化解读（医史视角，非医疗建议）',
-    displaySeconds: 30,
-    perks: ['节气签 ×1', '执镜签 ×1', '年度运气文化卡 ×1', '上屏展示 30 秒', '主播口播致谢'],
+    plainDesc: '三张卡全拿走：节气卡 + 经典卡 + 今年运气文化卡（老祖宗怎么理解年景）',
+    displaySeconds: 18,
+    perks: ['节气签 ×1', '执镜签 ×1', '年度运气文化卡 ×1', '上屏展示 18 秒', '主播口播致谢'],
   },
   {
     id: 't4',
@@ -62,8 +66,9 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '火箭 / 嘉年华',
     serviceName: '典藏签',
     serviceDesc: '全套三卡 +《断语叙事练习》精选三问（自我叙事练习，不做推算）',
-    displaySeconds: 60,
-    perks: ['全套三卡', '叙事练习精选 ×3', '上屏展示 60 秒', '主播口播致谢', '名字入当周「知音榜」'],
+    plainDesc: '三张卡全拿 + 三道自我叙事练习 + 名字留在本周知音榜上',
+    displaySeconds: 30,
+    perks: ['全套三卡', '叙事练习精选 ×3', '上屏展示 30 秒', '主播口播致谢', '名字入当周「知音榜」'],
   },
 ];
 
