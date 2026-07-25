@@ -117,6 +117,21 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === '/api/debug' && req.method === 'POST') {
+    // 调试样本落盘：油猴脚本捕获的原始 DOM 片段，供本地分析（不上传任何数据）
+    try {
+      const raw = await readBody(req);
+      await mkdir(DATA_DIR, { recursive: true });
+      const day = new Date().toISOString().slice(0, 10);
+      const entry = JSON.stringify({ at: Date.now(), ...JSON.parse(raw || '{}') });
+      await appendFile(path.join(DATA_DIR, `debug-${day}.jsonl`), entry + '\n', 'utf-8');
+      res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ ok: true }));
+    } catch (e) {
+      res.writeHead(400, { 'Content-Type': 'application/json' }).end(JSON.stringify({ ok: false, error: String(e) }));
+    }
+    return;
+  }
+
   // 静态文件（SPA 兜底到对应目录的 index.html）
   let filePath = path.join(DIST, decodeURIComponent(url.pathname));
   if (!filePath.startsWith(DIST)) {
