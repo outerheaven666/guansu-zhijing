@@ -3,13 +3,14 @@
  * 所有引文均给出篇名出处；「置信度」为针对当下情境匹配程度的主观估计，非科学测量。
  */
 
-export type Tradition = 'zhuangzi' | 'daodejing' | 'sunzi' | 'mao';
+export type Tradition = 'zhuangzi' | 'daodejing' | 'sunzi' | 'mao' | 'yinfujing';
 
 export const TRADITION_META: Record<Tradition, { name: string; lens: string; color: string; mirror: string; lensDesc: string }> = {
   zhuangzi: { name: '庄子', lens: '换视角', color: 'text-pine', mirror: '蝶梦签', lensDesc: '这面镜子不评判对错，只把你带到另一个位置，让你看见站在原地看不见的那一面。' },
   daodejing: { name: '道德经', lens: '做减法', color: 'text-gold', mirror: '水镜签', lensDesc: '这面镜子不教你再加什么，只轻声问一句：哪一件，其实可以放下了。' },
   sunzi: { name: '孙子兵法', lens: '评估代价', color: 'text-cinnabar', mirror: '庙算签', lensDesc: '这面镜子不许诺胜利，只逼你在出手之前，把成本、胜率与退路摆到桌面上。' },
   mao: { name: '毛泽东选集', lens: '逼拿事实', color: 'text-cinnabar', mirror: '求是签', lensDesc: '这面镜子不相信感觉，只相信你亲手查到的、亲眼看到的、亲自试过的东西。' },
+  yinfujing: { name: '阴符经', lens: '观机深读', color: 'text-pine', mirror: '枢机签', lensDesc: '这面镜子一次只取一句：请你慢慢读，看同一句话如何在自然、做事与习惯三层同时成立——多解并存，正是它的练法。' },
 };
 
 export type Theme =
@@ -599,5 +600,61 @@ export const QUOTES: Quote[] = [
     themes: ['action', 'meaning', 'self'],
     ask: '「向前」对你来说此刻具体是什么动作？不是口号，是今天下班前能做到的那一下。',
     experiment: '把「努力」翻译成今天的三个具体动作（几点到几点、做什么、产出什么），做完打一个勾再睡。',
+  },
+
+  // ============ 阴符经 · 观机深读（短章细读，多解并存） ============
+  {
+    id: 'yfj-guantian',
+    tradition: 'yinfujing',
+    text: '观天之道，执天之行，尽矣。',
+    source: '《阴符经·上篇》',
+    themes: ['action', 'meaning', 'choice'],
+    ask: '你推进这件事靠的是自己的蛮劲，还是事物本身的节律？它的「天之行」——不以你意志为转移的节拍——你观察过几天？',
+    experiment: '选一件你天天做的事，先花三天只观察不干预：什么时辰最顺、哪个环节最卡。第四天顺着节律只调整一个动作，记录差别。',
+  },
+  {
+    id: 'yfj-wuzei',
+    tradition: 'yinfujing',
+    text: '天有五贼，见之者昌。',
+    source: '《阴符经·上篇》',
+    themes: ['choice', 'gainloss', 'meaning'],
+    ask: '「五贼」历代注家说法不一（命、物、时、功、神；或五行）——这正是练习：驱动你这件事的隐形变量有哪几个？你真正看见的有几个？',
+    experiment: '写下影响当前这件事的五个变量，标注哪几个你从未认真看过。本周盯住最陌生的那一个，每天记一笔它的变化。',
+  },
+  {
+    id: 'yfj-yuzhou',
+    tradition: 'yinfujing',
+    text: '宇宙在乎手，万化生乎身。',
+    source: '《阴符经·上篇》',
+    themes: ['self', 'action'],
+    ask: '你把多少改变的可能推给了「环境」？剥到最后一层，你手里实际能握住的是哪一部分？',
+    experiment: '列出你的「我改变不了」清单，逐条追问「其中 5% 我能动的部分是什么」，挑一条今天就动，做完记录。',
+  },
+  {
+    id: 'yfj-qiaozhuo',
+    tradition: 'yinfujing',
+    text: '性有巧拙，可以伏藏。',
+    source: '《阴符经·中篇》',
+    themes: ['self', 'choice', 'relationship'],
+    ask: '你的「巧」用在什么地方其实是露怯，你的「拙」藏在什么地方反而是底气？伏与藏，都是主动的选择。',
+    experiment: '写下你最引以为傲和最自卑的各一点，本周互换一次：巧处藏一藏（不抢话、不炫技），拙处亮一亮（承认不懂、当众请教），记录反馈。',
+  },
+  {
+    id: 'yfj-jizaimu',
+    tradition: 'yinfujing',
+    text: '心生于物，死于物，机在目。',
+    source: '《阴符经·下篇》',
+    themes: ['pressure', 'self', 'action'],
+    ask: '你的心最近被什么「物」牵着走？它每天从你眼睛里进来多少次——屏幕、推送、别人的生活？「机在目」，入口在你手里。',
+    experiment: '记录一天里所有让你心神一动的「入口」，给最大的那个设一道闸（关推送、移出首屏、换位置），观察三天心稳了多少。',
+  },
+  {
+    id: 'yfj-riyueyoushu',
+    tradition: 'yinfujing',
+    text: '日月有数，大小有定，圣功生焉，神明出焉。',
+    source: '《阴符经·下篇》',
+    themes: ['action', 'gainloss', 'self'],
+    ask: '你想要「大成」，可你为「有数」的日积月累留了多少定课？没有定数的努力，只是随机波动。',
+    experiment: '定一个每天雷打不动的「数」（如三十分钟、五百字、二十个客户），写进日程当约会对待。先守二十一天，再谈结果。',
   },
 ];

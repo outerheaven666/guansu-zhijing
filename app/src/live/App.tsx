@@ -4,7 +4,7 @@ import { THEME_LABELS, TRADITION_META, type Theme } from '@/shared/quotes';
 import { JIEQI_INFO } from '@/shared/jieqi';
 import { readCalendar } from '@/shared/ganzhi';
 import { drawMirrorCard, drawShareCard, wrapText } from '@/shared/sharecard';
-import { FIGURE_LOTS, NARRATIVE_LOTS, drawFromPool } from './pools';
+import { FIGURE_LOTS, NARRATIVE_LOTS, DAILY_LOTS, drawFromPool } from './pools';
 import { trackEvent } from '@/shared/analytics';
 import { ErrorBoundary } from '@/shared/ErrorBoundary';
 
@@ -60,6 +60,9 @@ function makeTermCard(nickname: string, cardNo: string): string {
   const ya = customBits.length > 0 ? customBits[seed % customBits.length] : '';
   const personal = [`为你拈得 · ${hou}`];
   if (ya) personal.push(`今日雅事 · ${ya}`);
+  // 今日功课：从起居/体察/复盘/时令四池拈一（池最大，越便宜越多变体）
+  const { item: daily } = drawFromPool(DAILY_LOTS, `${nickname}::${r.year}-${r.month}-${r.day}::${termName}::daily`);
+  personal.push(`${daily.kind} · ${daily.text}`);
   const canvas = document.createElement('canvas');
   drawShareCard(canvas, {
     termName: info.name,
@@ -389,7 +392,7 @@ function LiveApp() {
       <img
         src={active.cards[active.cardIndex]}
         alt={`${active.tier.serviceName}卡片`}
-        className="max-h-[68vh] rounded-lg border-2 shadow-xl"
+        className={`${clean ? 'max-h-[82vh]' : 'max-h-[68vh]'} rounded-lg border-2 shadow-xl`}
         style={{ borderColor: 'hsl(var(--cinnabar))' }}
       />
       {active.cards.length > 1 && (
@@ -405,7 +408,8 @@ function LiveApp() {
     <div className="text-center">
       <div className="font-brush text-6xl ink-title">以文会友</div>
       <p className="mt-4 text-base ink-sub">拈一段传统智慧，照一照当下的自己 · 签无吉凶，皆是镜子</p>
-      {/* 刷什么 → 得什么：待机时常驻展示，观众一眼看懂 */}
+      {/* 刷什么 → 得什么：普通模式待机时常驻展示；clean 模式移入左栏常驻，此处不再重复 */}
+      {!clean && (
       <div className="mx-auto mt-6 max-w-lg rounded-xl border-2 p-5 text-left" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
         <div className="text-center text-lg font-bold text-cinnabar">刷什么 · 得什么</div>
         <div className="mt-3 space-y-3">
@@ -425,6 +429,7 @@ function LiveApp() {
           随机拈取的文化内容，可复现可核对 · 签号唯一，昵称入卡 · 不预测、不占卜、不承诺改运
         </div>
       </div>
+      )}
       {queue.length > 0 && <p className="mt-3 text-base text-cinnabar">准备中……排队 {queue.length} 位</p>}
     </div>
   );
@@ -453,10 +458,68 @@ function LiveApp() {
   ) : null;
 
   if (clean) {
+    // 观众纯净模式（OBS 浏览器源）：左栏上=刷什么得什么（常驻大字），左栏下=排队公示，右栏=签图舞台
     return (
-      <div className="ink-body flex min-h-screen flex-col items-center justify-center p-6">
-        {stage}
-        {queueStrip}
+      <div className="ink-body flex min-h-screen gap-5 p-5">
+        {/* 左栏 */}
+        <aside className="flex w-[360px] shrink-0 flex-col gap-4">
+          {/* 刷什么 · 得什么（常驻，手机上也能看清的字号） */}
+          <div className="rounded-xl border-2 p-4" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
+            <div className="text-center text-2xl font-bold text-cinnabar">刷什么 · 得什么</div>
+            <div className="mt-3 space-y-3.5">
+              {GIFT_TIERS.map((t) => (
+                <div key={t.id}>
+                  <div className="flex flex-wrap items-baseline gap-x-2 text-lg">
+                    <span className="ink-title font-bold">{t.examples}</span>
+                    <span className="text-cinnabar">→</span>
+                    <span className="font-bold text-cinnabar">{t.serviceName}</span>
+                  </div>
+                  <div className="mt-1 text-[15px] leading-relaxed ink-sub">{t.plainDesc}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 border-t hairline pt-2 text-center text-xs ink-sub">
+              随机拈取 · 可复现可核对 · 签号唯一，昵称入卡 · 不预测、不占卜
+            </div>
+          </div>
+
+          {/* 排队公示（竖排：谁在排、排第几、约等多久） */}
+          <div className="paper-card flex-1 overflow-hidden rounded-xl p-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-lg font-bold ink-title">排队公示</span>
+              <span className="text-sm ink-sub">
+                {active || queue.length > 0 ? `${queue.length + (active ? 1 : 0)} 位` : '虚位以待'}
+              </span>
+            </div>
+            <div className="mt-2 space-y-1.5 overflow-y-auto">
+              {active && (
+                <div className="rounded-lg bg-cinnabar px-3 py-2 text-sm font-bold text-[hsl(43_40%_96%)]">
+                  ▶ @{active.event.nickname} · {active.tier.serviceName} · 剩 {active.remaining}s
+                </div>
+              )}
+              {queue.slice(0, 10).map((e, i) => {
+                const waitSec = (active?.remaining ?? 0)
+                  + queue.slice(0, i).reduce((s, q) => s + tierOfDiamond(q.diamond).displaySeconds, 0);
+                const waitLabel = waitSec >= 60 ? `约等 ${Math.round(waitSec / 60)} 分钟` : `约等 ${waitSec}s`;
+                return (
+                  <div key={e.id} className="flex items-center justify-between gap-2 rounded-lg border hairline px-3 py-1.5 text-sm">
+                    <span className="truncate ink-title font-bold">#{i + 1} @{e.nickname}</span>
+                    <span className="shrink-0 text-xs ink-sub">{tierOfDiamond(e.diamond).serviceName} · {waitLabel}</span>
+                  </div>
+                );
+              })}
+              {queue.length > 10 && <div className="pt-1 text-center text-xs ink-sub">…共 {queue.length} 位在排</div>}
+              {!active && queue.length === 0 && (
+                <div className="pt-2 text-sm ink-sub">刷礼物即上屏，先到先得</div>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        {/* 右栏：签图舞台（视觉焦点，占满剩余空间） */}
+        <main className="flex min-w-0 flex-1 flex-col items-center justify-center">
+          {stage}
+        </main>
       </div>
     );
   }

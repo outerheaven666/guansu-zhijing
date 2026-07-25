@@ -130,14 +130,14 @@ export type EngineReply = CoachReply | CrisisReply;
 
 /** 主题与视角的亲和度：不同问题用不同的「镜子」 */
 const LENS_AFFINITY: Record<Theme, Array<Quote['tradition']>> = {
-  pressure: ['daodejing', 'zhuangzi', 'mao', 'sunzi'],
-  choice: ['sunzi', 'daodejing', 'mao', 'zhuangzi'],
-  anger: ['sunzi', 'zhuangzi', 'daodejing', 'mao'],
-  relationship: ['zhuangzi', 'daodejing', 'sunzi', 'mao'],
-  action: ['mao', 'sunzi', 'daodejing', 'zhuangzi'],
-  gainloss: ['daodejing', 'zhuangzi', 'sunzi', 'mao'],
-  meaning: ['zhuangzi', 'mao', 'daodejing', 'sunzi'],
-  self: ['mao', 'daodejing', 'zhuangzi', 'sunzi'],
+  pressure: ['daodejing', 'zhuangzi', 'yinfujing', 'mao', 'sunzi'],
+  choice: ['sunzi', 'yinfujing', 'daodejing', 'mao', 'zhuangzi'],
+  anger: ['sunzi', 'zhuangzi', 'daodejing', 'yinfujing', 'mao'],
+  relationship: ['zhuangzi', 'daodejing', 'sunzi', 'mao', 'yinfujing'],
+  action: ['mao', 'yinfujing', 'sunzi', 'daodejing', 'zhuangzi'],
+  gainloss: ['daodejing', 'zhuangzi', 'sunzi', 'yinfujing', 'mao'],
+  meaning: ['zhuangzi', 'yinfujing', 'mao', 'daodejing', 'sunzi'],
+  self: ['mao', 'yinfujing', 'daodejing', 'zhuangzi', 'sunzi'],
 };
 
 /** 生成陪练式回应。recentQuoteIds 避免连续重复引文；contextInputs 为最近几轮用户输入，用于多轮上下文延续。 */

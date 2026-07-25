@@ -105,18 +105,18 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
   ctx.font = `26px ${KAI}`;
   ctx.fillText(d.daysText, W / 2, 512);
 
-  // 个人拈选（昵称种子化：同一节气，每人拈得的候与雅事不同）
+  // 个人拈选（昵称种子化：同一节气，每人拈得的候、雅事与功课不同；最多三行）
   if (d.personal && d.personal.length > 0) {
     ctx.fillStyle = CINNABAR;
     ctx.font = `24px ${KAI}`;
-    d.personal.slice(0, 2).forEach((p, i) => ctx.fillText(p, W / 2, 548 + i * 36));
+    d.personal.slice(0, 3).forEach((p, i) => ctx.fillText(p, W / 2, 542 + i * 30));
   }
 
   // 三候（有个人拈选行时整体下移，避免重叠）
-  const phStart = d.personal && d.personal.length > 0 ? 622 : 586;
+  const phStart = d.personal && d.personal.length > 0 ? 642 : 586;
   ctx.fillStyle = INK;
   ctx.font = `28px ${KAI}`;
-  d.phenology.forEach((p, i) => ctx.fillText(p, W / 2, phStart + i * 44));
+  d.phenology.forEach((p, i) => ctx.fillText(p, W / 2, phStart + i * 40));
 
   // 民俗摘录（最多 6 行）
   ctx.textAlign = 'left';

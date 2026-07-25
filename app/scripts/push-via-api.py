@@ -35,6 +35,9 @@ FILES = [
     "app/src/live/tiers.ts",
     "app/src/live/pools.ts",
     "app/src/shared/sharecard.ts",
+    "app/src/shared/quotes.ts",
+    "app/src/shared/engine.ts",
+    "docs/经典应用指南.md",
     "app/scripts/push-via-api.py",
 ]
 
@@ -54,7 +57,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "四档独立签池（香火规格制）：故人签/观心签新池零叠加；卡面排版修复（引文自适应字号+昵称防出格）；价目表字号放大",
+    "message": "梯次签池扩容：新增《阴符经》枢机签（第五传统）；故人签 10→16 位、观心签 8→12 套；节气签新增 26 条今日功课池（起居/体察/复盘/时令）；观众纯净模式重构为左右两栏（左：常驻价目表+竖排排队公示，右：签图舞台）",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
