@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { GIFT_TIERS, currentTermName, drawQuoteFor, estimatePayoutYuan, tierOfDiamond, type GiftTier } from './tiers';
+import { GIFT_TIERS, currentTermName, drawLotFor, estimatePayoutYuan, tierOfDiamond, type GiftTier } from './tiers';
 import { THEME_LABELS, TRADITION_META, type Theme } from '@/shared/quotes';
 import { JIEQI_INFO } from '@/shared/jieqi';
 import { readCalendar, STEMS, BRANCHES, jiaziName } from '@/shared/ganzhi';
@@ -79,9 +79,19 @@ function makeTermCard(nickname: string, cardNo: string): string {
   return canvas.toDataURL('image/png');
 }
 
+/** 中文小写数字（1–99，用于签号） */
+function cnNum(n: number): string {
+  const d = '零一二三四五六七八九';
+  if (n <= 10) return n === 10 ? '十' : d[n];
+  if (n < 20) return `十${d[n % 10]}`;
+  const t = Math.floor(n / 10);
+  const r = n % 10;
+  return `${d[t]}十${r ? d[r] : ''}`;
+}
+
 function makeMirrorCard(nickname: string, theme: Theme, cardNo: string, salt: string): string {
-  // 种子 = 昵称 + 主题 + 礼物名：不同人、不同礼物，抽到的引文不同
-  const q = drawQuoteFor(nickname, theme, salt);
+  // 拈签：全库混抽，种子 = 昵称 + 话题 + 礼物——不同人、不同礼物，拈到的签不同
+  const { quote: q, lotNo } = drawLotFor(nickname, `${theme}::${salt}`);
   const meta = TRADITION_META[q.tradition];
   const canvas = document.createElement('canvas');
   drawMirrorCard(canvas, {
@@ -95,6 +105,8 @@ function makeMirrorCard(nickname: string, theme: Theme, cardNo: string, salt: st
     ask: q.ask,
     experiment: q.experiment,
     cardNo,
+    lotName: `${meta.mirror} · 第${cnNum(lotNo)}号`,
+    interpretation: meta.lensDesc,
   });
   return canvas.toDataURL('image/png');
 }
@@ -319,7 +331,7 @@ function LiveApp() {
   ) : (
     <div className="text-center">
       <div className="font-brush text-5xl ink-title">以文会友</div>
-      <p className="mt-4 text-sm ink-sub">文化内容服务，不含预测、不含命理 · 签号唯一，昵称入卡</p>
+      <p className="mt-4 text-sm ink-sub">拈一段传统智慧，照一照当下的自己 · 签无吉凶，皆是镜子</p>
       {/* 刷什么 → 得什么：待机时常驻展示，观众一眼看懂 */}
       <div className="mx-auto mt-6 max-w-md rounded-xl border-2 p-4 text-left" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
         <div className="text-center text-sm font-bold text-cinnabar">刷什么 · 得什么</div>
@@ -336,7 +348,9 @@ function LiveApp() {
             </div>
           ))}
         </div>
-        <div className="mt-3 text-center text-[10px] ink-sub">同一节气，一人一签：为你拈的候与雅事，和别人不一样</div>
+        <div className="mt-3 text-center text-[10px] ink-sub">
+          随机拈取的文化内容，可复现可核对 · 签号唯一，昵称入卡 · 不预测、不占卜、不承诺改运
+        </div>
       </div>
       {queue.length > 0 && <p className="mt-3 text-sm text-cinnabar">准备中……排队 {queue.length} 位</p>}
     </div>

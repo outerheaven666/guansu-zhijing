@@ -31,6 +31,8 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
+    "app/src/shared/quotes.ts",
+    "app/src/shared/sharecard.ts",
     "app/src/live/App.tsx",
     "app/src/live/tiers.ts",
     "app/scripts/push-via-api.py",
@@ -52,7 +54,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "直播页逻辑梳理：停留时长全线压缩（8/12/18/30s）+ 观众排队公示条（实时显示排第几）+ 签品大白话说明",
+    "message": "文脉签体系：签池 28→60 条，全库混抽+镜名签号（蝶梦/水镜/庙算/求是）+ 卡面今解；价值导向话术与「签无吉凶皆是镜子」合规表达",
     "tree": tree["sha"],
     "parents": [base_sha],
 })

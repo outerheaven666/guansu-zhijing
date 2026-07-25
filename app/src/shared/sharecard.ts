@@ -153,6 +153,10 @@ export interface MirrorCardData {
   experiment: string;
   /** 唯一签号（如「第 7 签」） */
   cardNo?: string;
+  /** 签品名号（如「水镜签 · 第廿三号」），印在卡面左上 */
+  lotName?: string;
+  /** 今解：这面镜子能给持签人带来什么（由镜类自动生成） */
+  interpretation?: string;
 }
 
 export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): void {
@@ -182,6 +186,13 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
     ctx.fillText(d.cardNo, W - 70, 88);
     ctx.textAlign = 'center';
   }
+  if (d.lotName) {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#3d5a52';
+    ctx.font = `22px ${KAI}`;
+    ctx.fillText(d.lotName, 70, 88);
+    ctx.textAlign = 'center';
+  }
 
   ctx.fillStyle = CINNABAR;
   ctx.font = `28px ${KAI}`;
@@ -194,16 +205,26 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
   ctx.fillStyle = CINNABAR;
   ctx.fillRect(W / 2 - 40, 216, 80, 4);
 
-  // 引文（朱砂引号线 + 居中折行，最多 7 行）
+  // 引文（朱砂引号线 + 居中折行，最多 5 行，为今解留出固定版面）
   ctx.fillStyle = CINNABAR;
   ctx.fillRect(88, 268, 5, 300);
   ctx.fillStyle = INK;
   ctx.font = `34px ${KAI}`;
-  const qLines = wrapText(ctx, `「${d.quoteText}」`, W - 220).slice(0, 7);
+  const qLines = wrapText(ctx, `「${d.quoteText}」`, W - 220).slice(0, 5);
   qLines.forEach((l, i) => ctx.fillText(l, W / 2 + 12, 320 + i * 52));
   ctx.fillStyle = INK_SOFT;
   ctx.font = `24px ${KAI}`;
-  ctx.fillText(`—— ${d.quoteSource}`, W / 2 + 12, 330 + qLines.length * 52);
+  const srcY = 330 + qLines.length * 52;
+  ctx.fillText(`—— ${d.quoteSource}`, W / 2 + 12, srcY);
+
+  // 今解：这面镜子能给你带来什么（固定版面，自动由镜类生成，非断语）
+  if (d.interpretation) {
+    const iy = Math.max(srcY + 46, 600);
+    ctx.fillStyle = '#3d5a52';
+    ctx.font = `20px ${KAI}`;
+    const iLines = wrapText(ctx, `今解 · ${d.interpretation}`, W - 200).slice(0, 2);
+    iLines.forEach((l, i) => ctx.fillText(l, W / 2 + 12, Math.min(iy, 604) + i * 32));
+  }
 
   // 镜问
   ctx.textAlign = 'left';

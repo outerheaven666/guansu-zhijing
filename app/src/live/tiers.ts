@@ -30,7 +30,7 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '小心心 / 玫瑰 / 啤酒',
     serviceName: '节气签',
     serviceDesc: '当令节气文化卡：昵称入卡，含干支、三候、民俗与诗句',
-    plainDesc: '一张写你名字的节气卡：今天什么节气、讲究什么，专为你拈一候一件雅事',
+    plainDesc: '借老祖宗的时令智慧给你一个节拍：天地正走到哪一步，你的生活该为什么留心、为什么松手',
     displaySeconds: 8,
     perks: ['专属昵称节气卡 ×1', '上屏展示 8 秒'],
   },
@@ -42,7 +42,7 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '你真好看 / 墨镜',
     serviceName: '执镜签',
     serviceDesc: '经典引文签：按本周直播主题，抽一条庄子/道德经/孙子/毛选原文，附出处、镜问与小实验',
-    plainDesc: '一句经典对你说的话 + 一个扎心提问 + 一件今晚就能试的小事',
+    plainDesc: '从庄子、道德经、孙子、毛选里为你拈一面镜子：不给答案，只帮你把当下这团乱麻照清楚',
     displaySeconds: 12,
     perks: ['专属昵称引文签 ×1', '含出处 + 镜问 + 小实验', '上屏展示 12 秒'],
   },
@@ -54,7 +54,7 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '热气球 / 浪漫马车',
     serviceName: '双镜签',
     serviceDesc: '节气签 + 执镜签双卡，加赠本年五运六气文化解读（医史视角，非医疗建议）',
-    plainDesc: '三张卡全拿走：节气卡 + 经典卡 + 今年运气文化卡（老祖宗怎么理解年景）',
+    plainDesc: '时令、经典、年景三重视角一次集齐：把你眼前的纠结，放进更大的格局里重新看一遍',
     displaySeconds: 18,
     perks: ['节气签 ×1', '执镜签 ×1', '年度运气文化卡 ×1', '上屏展示 18 秒', '主播口播致谢'],
   },
@@ -66,7 +66,7 @@ export const GIFT_TIERS: GiftTier[] = [
     examples: '火箭 / 嘉年华',
     serviceName: '典藏签',
     serviceDesc: '全套三卡 +《断语叙事练习》精选三问（自我叙事练习，不做推算）',
-    plainDesc: '三张卡全拿 + 三道自我叙事练习 + 名字留在本周知音榜上',
+    plainDesc: '三重视角之外再加三道自我追问：把一张签，变成一次真正属于你自己的整理，名字留在知音榜',
     displaySeconds: 30,
     perks: ['全套三卡', '叙事练习精选 ×3', '上屏展示 30 秒', '主播口播致谢', '名字入当周「知音榜」'],
   },
@@ -95,6 +95,19 @@ export function drawQuoteFor(nickname: string, theme: Theme, salt = ''): Quote {
   const s = `${nickname}::${theme}::${salt}`;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return list[h % list.length];
+}
+
+/**
+ * 拈签（直播用）：全库混抽，种子 = 昵称 + 礼物 + 盐。
+ * 观众感知是「抽」，实际是确定性哈希——可复现、可核对、算法透明，
+ * 这是与「灵签占卜」的本质区别：我们不制造神秘，只分发文化内容。
+ */
+export function drawLotFor(nickname: string, salt = ''): { quote: Quote; lotNo: number } {
+  let h = 0;
+  const s = `${nickname}::${salt}`;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  const idx = h % QUOTES.length;
+  return { quote: QUOTES[idx], lotNo: idx + 1 };
 }
 
 /** 当令节气（按公历月份就近取，用于节气签；节气在公历中日期稳定，每月 6 日与 21 日前后各一个） */
