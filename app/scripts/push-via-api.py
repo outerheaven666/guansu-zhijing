@@ -32,6 +32,9 @@ def api(method, path, payload=None):
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
     "app/src/live/App.tsx",
+    "app/src/live/tiers.ts",
+    "app/src/live/pools.ts",
+    "app/src/shared/sharecard.ts",
     "app/scripts/push-via-api.py",
 ]
 
@@ -51,7 +54,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "排队公示条升级：每位排队观众显示个人预估等待时间（按签档时长累加）",
+    "message": "四档独立签池（香火规格制）：故人签/观心签新池零叠加；卡面排版修复（引文自适应字号+昵称防出格）；价目表字号放大",
     "tree": tree["sha"],
     "parents": [base_sha],
 })

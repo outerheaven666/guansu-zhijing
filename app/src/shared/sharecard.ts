@@ -205,25 +205,34 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
   ctx.fillStyle = CINNABAR;
   ctx.fillRect(W / 2 - 40, 216, 80, 4);
 
-  // 引文（朱砂引号线 + 居中折行，最多 5 行，为今解留出固定版面）
+  // 引文（朱砂引号线 + 居中折行，按长度自适应字号：长文自动降号，杜绝出格）
   ctx.fillStyle = CINNABAR;
   ctx.fillRect(88, 268, 5, 300);
   ctx.fillStyle = INK;
-  ctx.font = `34px ${KAI}`;
-  const qLines = wrapText(ctx, `「${d.quoteText}」`, W - 220).slice(0, 5);
-  qLines.forEach((l, i) => ctx.fillText(l, W / 2 + 12, 320 + i * 52));
+  let qFont = 34;
+  let qLH = 52;
+  let qLines = wrapText(ctx, `「${d.quoteText}」`, W - 220);
+  if (qLines.length > 4) {
+    ctx.font = `28px ${KAI}`;
+    qFont = 28;
+    qLH = 44;
+    qLines = wrapText(ctx, `「${d.quoteText}」`, W - 220);
+  }
+  qLines = qLines.slice(0, qFont === 34 ? 4 : 5);
+  ctx.font = `${qFont}px ${KAI}`;
+  qLines.forEach((l, i) => ctx.fillText(l, W / 2 + 12, 320 + i * qLH));
   ctx.fillStyle = INK_SOFT;
   ctx.font = `24px ${KAI}`;
-  const srcY = 330 + qLines.length * 52;
+  const srcY = 334 + qLines.length * qLH;
   ctx.fillText(`—— ${d.quoteSource}`, W / 2 + 12, srcY);
 
   // 今解：这面镜子能给你带来什么（固定版面，自动由镜类生成，非断语）
   if (d.interpretation) {
-    const iy = Math.max(srcY + 46, 600);
+    const iy = Math.min(Math.max(srcY + 44, 580), 600);
     ctx.fillStyle = '#3d5a52';
     ctx.font = `20px ${KAI}`;
     const iLines = wrapText(ctx, `今解 · ${d.interpretation}`, W - 200).slice(0, 2);
-    iLines.forEach((l, i) => ctx.fillText(l, W / 2 + 12, Math.min(iy, 604) + i * 32));
+    iLines.forEach((l, i) => ctx.fillText(l, W / 2 + 12, iy + i * 32));
   }
 
   // 镜问

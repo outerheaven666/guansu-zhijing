@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GIFT_TIERS, currentTermName, drawLotFor, estimatePayoutYuan, tierOfDiamond, type GiftTier } from './tiers';
 import { THEME_LABELS, TRADITION_META, type Theme } from '@/shared/quotes';
 import { JIEQI_INFO } from '@/shared/jieqi';
-import { readCalendar, STEMS, BRANCHES, jiaziName } from '@/shared/ganzhi';
-import { drawMirrorCard, drawShareCard } from '@/shared/sharecard';
-import { yunOfStem, LIUQI, QI_NARRATIVE } from '@/shared/wuyunliuqi';
+import { readCalendar } from '@/shared/ganzhi';
+import { drawMirrorCard, drawShareCard, wrapText } from '@/shared/sharecard';
+import { FIGURE_LOTS, NARRATIVE_LOTS, drawFromPool } from './pools';
 import { trackEvent } from '@/shared/analytics';
 import { ErrorBoundary } from '@/shared/ErrorBoundary';
 
@@ -72,7 +72,7 @@ function makeTermCard(nickname: string, cardNo: string): string {
     customs: info.customs,
     poemLine: info.poem.line,
     poemSource: info.poem.source,
-    nickname,
+    nickname: truncNick(nickname),
     cardNo,
     personal,
   });
@@ -89,13 +89,18 @@ function cnNum(n: number): string {
   return `${d[t]}十${r ? d[r] : ''}`;
 }
 
+/** 卡面昵称安全截断（防长昵称出格） */
+function truncNick(n: string): string {
+  return n.length > 10 ? `${n.slice(0, 10)}…` : n;
+}
+
 function makeMirrorCard(nickname: string, theme: Theme, cardNo: string, salt: string): string {
   // 拈签：全库混抽，种子 = 昵称 + 话题 + 礼物——不同人、不同礼物，拈到的签不同
   const { quote: q, lotNo } = drawLotFor(nickname, `${theme}::${salt}`);
   const meta = TRADITION_META[q.tradition];
   const canvas = document.createElement('canvas');
   drawMirrorCard(canvas, {
-    nickname,
+    nickname: truncNick(nickname),
     serviceName: '执镜签',
     themeLabel: THEME_LABELS[theme],
     traditionName: meta.name,
@@ -111,14 +116,11 @@ function makeMirrorCard(nickname: string, theme: Theme, cardNo: string, salt: st
   return canvas.toDataURL('image/png');
 }
 
-function makeYunqiCard(nickname: string, cardNo: string): string {
-  const y = new Date().getFullYear();
-  const idx = (((y - 4) % 60) + 60) % 60;
-  const ganzhi = jiaziName(idx);
-  const yun = yunOfStem(STEMS[idx % 10]);
-  const qi = LIUQI[BRANCHES[idx % 12]];
+
+function makeFigureCard(nickname: string, giftName: string, cardNo: string): string {
+  const { item, no } = drawFromPool(FIGURE_LOTS, `${nickname}::${giftName}::figure`);
   const canvas = document.createElement('canvas');
-  const W = 720, H = 720;
+  const W = 720, H = 1080;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d')!;
@@ -127,45 +129,115 @@ function makeYunqiCard(nickname: string, cardNo: string): string {
   ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = '#d8cdb4';
   ctx.lineWidth = 3;
-  ctx.strokeRect(24, 24, W - 48, H - 48);
+  ctx.strokeRect(28, 28, W - 56, H - 56);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(40, 40, W - 72, H - 72);
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#5c5548';
-  ctx.font = `22px ${KAI}`;
-  ctx.fillText('观 俗 · 五 运 六 气 文 化 卡', W / 2, 88);
-  ctx.fillStyle = '#9e2b25';
-  ctx.font = `26px ${KAI}`;
-  ctx.fillText(`赠  @${nickname}`, W / 2, 134);
-  if (cardNo) {
-    ctx.textAlign = 'right';
-    ctx.font = `20px ${KAI}`;
-    ctx.fillText(cardNo, W - 52, 60);
-    ctx.textAlign = 'center';
-  }
-  ctx.fillStyle = '#2b2620';
-  ctx.font = `88px ${KAI}`;
-  ctx.fillText(`${y} · ${ganzhi}`, W / 2, 268);
-  ctx.font = `40px ${KAI}`;
-  ctx.fillStyle = '#8a6d2f';
-  ctx.fillText(`中运 ${yun.element}运${yun.excess}`, W / 2, 352);
-  ctx.fillStyle = '#3d5a52';
-  ctx.fillText(`${qi.sitian}司天 · ${qi.zaiquan}在泉`, W / 2, 416);
-  ctx.textAlign = 'left';
   ctx.fillStyle = '#5c5548';
   ctx.font = `24px ${KAI}`;
-  const narrative = QI_NARRATIVE[qi.sitian];
-  let line = '';
-  let yy = 486;
-  for (const ch of narrative) {
-    if (ctx.measureText(line + ch).width > W - 160) {
-      ctx.fillText(line, 80, yy);
-      yy += 40;
-      line = ch;
-    } else line += ch;
-  }
-  if (line) ctx.fillText(line, 80, yy);
+  ctx.fillText('观 俗 · 故 人 签', W / 2, 104);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#3d5a52';
+  ctx.font = `22px ${KAI}`;
+  ctx.fillText(`故人镜 · 第${cnNum(no)}号`, 70, 88);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#9e2b25';
+  ctx.fillText(cardNo, W - 70, 88);
   ctx.textAlign = 'center';
+  ctx.fillStyle = '#9e2b25';
+  ctx.font = `26px ${KAI}`;
+  ctx.fillText(`赠  @${truncNick(nickname)}`, W / 2, 156);
+  ctx.fillStyle = '#2b2620';
+  ctx.font = `64px ${KAI}`;
+  ctx.fillText(item.name, W / 2, 268);
+  ctx.fillStyle = '#9e2b25';
+  ctx.fillRect(W / 2 - 40, 296, 80, 4);
+  // 处境（史实）
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#2b2620';
+  ctx.font = `26px ${KAI}`;
+  wrapText(ctx, item.story, W - 180).slice(0, 5).forEach((l, i) => ctx.fillText(l, 90, 380 + i * 44));
+  // 他如何自处
+  ctx.fillStyle = '#9e2b25';
+  ctx.font = `26px ${KAI}`;
+  wrapText(ctx, item.mirror, W - 180).slice(0, 3).forEach((l, i) => ctx.fillText(l, 90, 640 + i * 44));
+  // 换作是你
+  ctx.fillStyle = '#3d5a52';
+  ctx.font = `24px ${KAI}`;
+  ctx.fillText('换 作 是 你', 90, 806);
+  ctx.fillStyle = '#5c5548';
+  wrapText(ctx, item.ask, W - 180).slice(0, 3).forEach((l, i) => ctx.fillText(l, 90, 850 + i * 40));
+  // 页脚
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5c5548';
   ctx.font = `20px ${KAI}`;
-  ctx.fillText('医学史视角 · 不构成医疗建议 · 观俗 GUANSU', W / 2, H - 52);
+  ctx.fillText(`—— ${item.source}`, W / 2, 986);
+  ctx.fillText('他走过的路，是你的一面镜子 · 文化内容，非命运暗示', W / 2, 1024);
+  ctx.fillText('观俗 GUANSU', W / 2, 1052);
+  return canvas.toDataURL('image/png');
+}
+
+function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): string {
+  const { item, no } = drawFromPool(NARRATIVE_LOTS, `${nickname}::${giftName}::narrative`);
+  const canvas = document.createElement('canvas');
+  const W = 720, H = 1080;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  const KAI = '"Kaiti SC","KaiTi","STKaiti","Noto Serif SC","Songti SC",serif';
+  ctx.fillStyle = '#f6f1e5';
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#d8cdb4';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(28, 28, W - 56, H - 56);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(40, 40, W - 72, H - 72);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5c5548';
+  ctx.font = `24px ${KAI}`;
+  ctx.fillText('观 俗 · 观 心 签', W / 2, 104);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#3d5a52';
+  ctx.font = `22px ${KAI}`;
+  ctx.fillText(`叙事练习 · 第${cnNum(no)}号`, 70, 88);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#9e2b25';
+  ctx.fillText(cardNo, W - 70, 88);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#9e2b25';
+  ctx.font = `26px ${KAI}`;
+  ctx.fillText(`赠  @${truncNick(nickname)}`, W / 2, 156);
+  ctx.fillStyle = '#5c5548';
+  ctx.font = `24px ${KAI}`;
+  ctx.fillText('你为什么相信这句话——', W / 2, 232);
+  ctx.fillStyle = '#2b2620';
+  ctx.font = `54px ${KAI}`;
+  ctx.fillText(`「${item.label}」`, W / 2, 316);
+  ctx.fillStyle = '#9e2b25';
+  ctx.fillRect(W / 2 - 40, 344, 80, 4);
+  // 三问
+  const steps: Array<[string, string, string]> = [
+    ['一 问 · 溯源', item.q1, '#9e2b25'],
+    ['二 问 · 代价', item.q2, '#8a6d2f'],
+    ['三 问 · 重写', item.q3, '#3d5a52'],
+  ];
+  let y = 428;
+  ctx.textAlign = 'left';
+  for (const [title, text, color] of steps) {
+    ctx.fillStyle = color;
+    ctx.font = `24px ${KAI}`;
+    ctx.fillText(title, 90, y);
+    ctx.fillStyle = '#2b2620';
+    ctx.font = `24px ${KAI}`;
+    const lines: string[] = wrapText(ctx, text, W - 180).slice(0, 3);
+    lines.forEach((l: string, i: number) => ctx.fillText(l, 90, y + 44 + i * 38));
+    y += 44 + lines.length * 38 + 36;
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5c5548';
+  ctx.font = `20px ${KAI}`;
+  ctx.fillText('自我叙事练习 · 不是推算 · 答案写不写，由你', W / 2, 1014);
+  ctx.fillText('观俗 GUANSU', W / 2, 1046);
   return canvas.toDataURL('image/png');
 }
 
@@ -173,10 +245,11 @@ function cardsForEvent(e: GiftEvent, theme: Theme, seq: number): { tier: GiftTie
   const tier = tierOfDiamond(e.diamond);
   const cardNo = `第 ${seq} 签 · 本场唯一`;
   const cards: string[] = [];
+  // 四档四池，互不叠加：每一档从自己规格的签池中独立随机
   if (tier.id === 't1') cards.push(makeTermCard(e.nickname, cardNo));
   if (tier.id === 't2') cards.push(makeMirrorCard(e.nickname, theme, cardNo, e.giftName));
-  if (tier.id === 't3') cards.push(makeTermCard(e.nickname, cardNo), makeMirrorCard(e.nickname, theme, cardNo, e.giftName), makeYunqiCard(e.nickname, cardNo));
-  if (tier.id === 't4') cards.push(makeTermCard(e.nickname, cardNo), makeMirrorCard(e.nickname, theme, cardNo, e.giftName), makeYunqiCard(e.nickname, cardNo));
+  if (tier.id === 't3') cards.push(makeFigureCard(e.nickname, e.giftName, cardNo));
+  if (tier.id === 't4') cards.push(makeNarrativeCard(e.nickname, e.giftName, cardNo));
   return { tier, cards };
 }
 
@@ -330,29 +403,29 @@ function LiveApp() {
     </div>
   ) : (
     <div className="text-center">
-      <div className="font-brush text-5xl ink-title">以文会友</div>
-      <p className="mt-4 text-sm ink-sub">拈一段传统智慧，照一照当下的自己 · 签无吉凶，皆是镜子</p>
+      <div className="font-brush text-6xl ink-title">以文会友</div>
+      <p className="mt-4 text-base ink-sub">拈一段传统智慧，照一照当下的自己 · 签无吉凶，皆是镜子</p>
       {/* 刷什么 → 得什么：待机时常驻展示，观众一眼看懂 */}
-      <div className="mx-auto mt-6 max-w-md rounded-xl border-2 p-4 text-left" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
-        <div className="text-center text-sm font-bold text-cinnabar">刷什么 · 得什么</div>
-        <div className="mt-3 space-y-2.5">
+      <div className="mx-auto mt-6 max-w-lg rounded-xl border-2 p-5 text-left" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
+        <div className="text-center text-lg font-bold text-cinnabar">刷什么 · 得什么</div>
+        <div className="mt-3 space-y-3">
           {GIFT_TIERS.map((t) => (
-            <div key={t.id} className="text-xs">
+            <div key={t.id} className="text-sm">
               <div className="flex items-baseline gap-2">
-                <span className="w-36 shrink-0 ink-title font-bold">{t.examples}</span>
+                <span className="w-44 shrink-0 ink-title font-bold">{t.examples}</span>
                 <span className="shrink-0 text-cinnabar">→</span>
                 <span className="shrink-0 font-bold text-cinnabar">{t.serviceName}</span>
-                <span className="ink-sub">（约 {t.minDiamond}–{t.maxDiamond === Infinity ? '∞' : t.maxDiamond} 币）</span>
+                <span className="ink-sub text-xs">（约 {t.minDiamond}–{t.maxDiamond === Infinity ? '∞' : t.maxDiamond} 币）</span>
               </div>
-              <div className="mt-0.5 pl-1 text-[11px] leading-relaxed ink-sub">{t.plainDesc}</div>
+              <div className="mt-1 pl-1 text-[13px] leading-relaxed ink-sub">{t.plainDesc}</div>
             </div>
           ))}
         </div>
-        <div className="mt-3 text-center text-[10px] ink-sub">
+        <div className="mt-3 text-center text-xs ink-sub">
           随机拈取的文化内容，可复现可核对 · 签号唯一，昵称入卡 · 不预测、不占卜、不承诺改运
         </div>
       </div>
-      {queue.length > 0 && <p className="mt-3 text-sm text-cinnabar">准备中……排队 {queue.length} 位</p>}
+      {queue.length > 0 && <p className="mt-3 text-base text-cinnabar">准备中……排队 {queue.length} 位</p>}
     </div>
   );
 
