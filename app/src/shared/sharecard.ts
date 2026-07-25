@@ -23,9 +23,21 @@ const KAI = '"Kaiti SC","KaiTi","STKaiti","Noto Serif SC","Songti SC",serif';
 
 const INK = '#2b2620';
 const INK_SOFT = '#5c5548';
+const INK_FAINT = '#8a8070';
 const CINNABAR = '#9e2b25';
 const PAPER = '#f6f1e5';
 const LINE = '#d8cdb4';
+
+/** 圆角矩形路径（兼容无原生 roundRect 的环境） */
+function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
 
 /** 中文按字符宽度折行 */
 export function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
@@ -81,62 +93,83 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
     ctx.fillText(`为  @${d.nickname}  制`, W / 2, 152);
   }
 
-  // 节气名
+  // 节气名：直播签卡上节气是众人相同信息，收小让位；个人拈选做主角
+  const hasPersonal = !!(d.personal && d.personal.length > 0);
   ctx.fillStyle = INK;
-  ctx.font = `132px ${KAI}`;
-  ctx.fillText(d.termName, W / 2, 268);
+  ctx.font = hasPersonal ? `92px ${KAI}` : `132px ${KAI}`;
+  ctx.fillText(d.termName, W / 2, hasPersonal ? 252 : 268);
 
   ctx.fillStyle = INK_SOFT;
-  ctx.font = `26px ${KAI}`;
-  ctx.fillText(`${d.pinyin} · ${d.longitude}`, W / 2, 322);
+  ctx.font = hasPersonal ? `22px ${KAI}` : `26px ${KAI}`;
+  ctx.fillText(`${d.pinyin} · ${d.longitude}`, W / 2, hasPersonal ? 298 : 322);
 
-  // 朱砂短线
-  ctx.fillStyle = CINNABAR;
-  ctx.fillRect(W / 2 - 40, 352, 80, 4);
-
-  // 日期与干支
-  ctx.fillStyle = INK;
-  ctx.font = `30px ${KAI}`;
-  ctx.fillText(d.dateLabel, W / 2, 424);
-  ctx.fillStyle = INK_SOFT;
-  ctx.font = `26px ${KAI}`;
-  ctx.fillText(d.pillars, W / 2, 468);
-  ctx.fillStyle = CINNABAR;
-  ctx.font = `26px ${KAI}`;
-  ctx.fillText(d.daysText, W / 2, 512);
-
-  // 个人拈选（昵称种子化：同一节气，每人拈得的候、雅事与功课不同；最多三行）
-  if (d.personal && d.personal.length > 0) {
+  if (!hasPersonal) {
+    // 观俗应用分享卡原版布局（无个人拈选，保持不变）
     ctx.fillStyle = CINNABAR;
-    ctx.font = `24px ${KAI}`;
-    d.personal.slice(0, 3).forEach((p, i) => ctx.fillText(p, W / 2, 542 + i * 30));
+    ctx.fillRect(W / 2 - 40, 352, 80, 4);
+    ctx.fillStyle = INK;
+    ctx.font = `30px ${KAI}`;
+    ctx.fillText(d.dateLabel, W / 2, 424);
+    ctx.fillStyle = INK_SOFT;
+    ctx.font = `26px ${KAI}`;
+    ctx.fillText(d.pillars, W / 2, 468);
+    ctx.fillStyle = CINNABAR;
+    ctx.font = `26px ${KAI}`;
+    ctx.fillText(d.daysText, W / 2, 512);
+  } else {
+    // 直播签卡：日期干支（当日众人相同）淡化为一行小字
+    ctx.fillStyle = INK_FAINT;
+    ctx.font = `20px ${KAI}`;
+    ctx.fillText(`${d.dateLabel} · ${d.pillars} · ${d.daysText}`, W / 2, 340);
+
+    // 主角区：个人拈选（一人一签）朱砂浅底横幅，字号按行宽自适应防出格
+    ctx.fillStyle = '#efe3d0';
+    ctx.strokeStyle = CINNABAR;
+    ctx.lineWidth = 2;
+    roundedRectPath(ctx, 70, 372, W - 140, 218, 14);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = CINNABAR;
+    ctx.font = `20px ${KAI}`;
+    ctx.fillText('为 你 拈 得 · 一 人 一 签', W / 2, 412);
+    ctx.fillStyle = INK;
+    d.personal!.slice(0, 3).forEach((p, i) => {
+      let f = 27;
+      while (f > 19) {
+        ctx.font = `${f}px ${KAI}`;
+        if (ctx.measureText(p).width <= W - 220) break;
+        f -= 1;
+      }
+      ctx.font = `${f}px ${KAI}`;
+      ctx.fillText(p, W / 2, 462 + i * 42);
+    });
   }
 
-  // 三候（有个人拈选行时整体下移，避免重叠）
-  const phStart = d.personal && d.personal.length > 0 ? 642 : 586;
-  ctx.fillStyle = INK;
-  ctx.font = `28px ${KAI}`;
-  d.phenology.forEach((p, i) => ctx.fillText(p, W / 2, phStart + i * 40));
+  // 三候（众人相同，直播签卡淡化处理）
+  const phStart = hasPersonal ? 648 : 586;
+  ctx.fillStyle = hasPersonal ? INK_FAINT : INK;
+  ctx.font = hasPersonal ? `22px ${KAI}` : `28px ${KAI}`;
+  d.phenology.forEach((p, i) => ctx.fillText(p, W / 2, phStart + i * (hasPersonal ? 34 : 44)));
 
-  // 民俗摘录（最多 6 行）
+  // 民俗摘录（直播签卡：更小字、更少行，只做背景氛围）
   ctx.textAlign = 'left';
-  ctx.font = `24px ${KAI}`;
+  ctx.font = hasPersonal ? `20px ${KAI}` : `24px ${KAI}`;
   ctx.fillStyle = INK_SOFT;
-  const lines = wrapText(ctx, d.customs, W - 160).slice(0, 6);
-  lines.forEach((l, i) => ctx.fillText(l, 80, 748 + i * 38));
+  const lines = wrapText(ctx, d.customs, W - 160).slice(0, hasPersonal ? 3 : 6);
+  lines.forEach((l, i) => ctx.fillText(l, 80, (hasPersonal ? 792 : 748) + i * (hasPersonal ? 30 : 38)));
 
-  // 诗
+  // 诗（直播签卡淡化）
   ctx.textAlign = 'center';
-  ctx.fillStyle = INK;
-  ctx.font = `30px ${KAI}`;
-  ctx.fillText(`「${d.poemLine}」`, W / 2, 972);
-  ctx.fillStyle = INK_SOFT;
-  ctx.font = `22px ${KAI}`;
-  ctx.fillText(`—— ${d.poemSource}`, W / 2, 1010);
+  ctx.fillStyle = hasPersonal ? INK_FAINT : INK;
+  ctx.font = hasPersonal ? `24px ${KAI}` : `30px ${KAI}`;
+  ctx.fillText(`「${d.poemLine}」`, W / 2, hasPersonal ? 940 : 972);
+  ctx.fillStyle = INK_FAINT;
+  ctx.font = hasPersonal ? `19px ${KAI}` : `22px ${KAI}`;
+  ctx.fillText(`—— ${d.poemSource}`, W / 2, hasPersonal ? 974 : 1010);
 
   // 页脚
-  ctx.font = `20px ${KAI}`;
-  ctx.fillText('文化理解，而非预测 · 观俗 GUANSU', W / 2, 1050);
+  ctx.font = `18px ${KAI}`;
+  ctx.fillText('文化理解，而非预测 · 观俗 GUANSU', W / 2, hasPersonal ? 1030 : 1050);
 }
 
 /** ============ 执镜签（直播引文卡） ============ */
@@ -175,8 +208,8 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
   ctx.strokeRect(40, 40, W - 72, H - 72);
 
   ctx.textAlign = 'center';
-  ctx.fillStyle = INK_SOFT;
-  ctx.font = `24px ${KAI}`;
+  ctx.fillStyle = INK_FAINT;
+  ctx.font = `20px ${KAI}`;
   ctx.fillText(`执 镜 · ${d.serviceName}`, W / 2, 104);
 
   if (d.cardNo) {
@@ -198,8 +231,8 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
   ctx.font = `28px ${KAI}`;
   ctx.fillText(`赠  @${d.nickname}`, W / 2, 156);
 
-  ctx.fillStyle = INK_SOFT;
-  ctx.font = `22px ${KAI}`;
+  ctx.fillStyle = INK_FAINT;
+  ctx.font = `20px ${KAI}`;
   ctx.fillText(`本周主题 · ${d.themeLabel}    镜子 · ${d.traditionName}「${d.lens}」`, W / 2, 196);
 
   ctx.fillStyle = CINNABAR;
@@ -255,10 +288,10 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
   const eY = 704 + 52 + aLines.length * 40;
   eLines.forEach((l, i) => ctx.fillText(l, 80, eY + i * 38));
 
-  // 页脚
+  // 页脚（雷同合规信息，淡化）
   ctx.textAlign = 'center';
-  ctx.fillStyle = INK_SOFT;
-  ctx.font = `20px ${KAI}`;
+  ctx.fillStyle = INK_FAINT;
+  ctx.font = `18px ${KAI}`;
   ctx.fillText('引文只提供看问题的角度 · 不预测 不诊断 不承诺改命', W / 2, 1014);
   ctx.fillText('执镜 ZHIJING', W / 2, 1046);
 }

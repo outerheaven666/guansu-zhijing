@@ -159,8 +159,8 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   ctx.lineWidth = 1;
   ctx.strokeRect(40, 40, W - 72, H - 72);
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#5c5548';
-  ctx.font = `24px ${KAI}`;
+  ctx.fillStyle = '#8a8070';
+  ctx.font = `20px ${KAI}`;
   ctx.fillText('观 俗 · 故 人 签', W / 2, 104);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#3d5a52';
@@ -193,11 +193,13 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   ctx.fillText('换 作 是 你', 90, 806);
   ctx.fillStyle = '#5c5548';
   wrapText(ctx, item.ask, W - 180).slice(0, 3).forEach((l, i) => ctx.fillText(l, 90, 850 + i * 40));
-  // 页脚
+  // 页脚（出处为每签不同，保留墨色；雷同提示行淡化）
   ctx.textAlign = 'center';
   ctx.fillStyle = '#5c5548';
   ctx.font = `20px ${KAI}`;
   ctx.fillText(`—— ${item.source}`, W / 2, 986);
+  ctx.fillStyle = '#8a8070';
+  ctx.font = `18px ${KAI}`;
   ctx.fillText('他走过的路，是你的一面镜子 · 文化内容，非命运暗示', W / 2, 1024);
   ctx.fillText('观俗 GUANSU', W / 2, 1052);
   return canvas.toDataURL('image/png');
@@ -219,8 +221,8 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
   ctx.lineWidth = 1;
   ctx.strokeRect(40, 40, W - 72, H - 72);
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#5c5548';
-  ctx.font = `24px ${KAI}`;
+  ctx.fillStyle = '#8a8070';
+  ctx.font = `20px ${KAI}`;
   ctx.fillText('观 俗 · 观 心 签', W / 2, 104);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#3d5a52';
@@ -260,8 +262,8 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
     y += 44 + lines.length * 38 + 36;
   }
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#5c5548';
-  ctx.font = `20px ${KAI}`;
+  ctx.fillStyle = '#8a8070';
+  ctx.font = `18px ${KAI}`;
   ctx.fillText('自我叙事练习 · 不是推算 · 答案写不写，由你', W / 2, 1014);
   ctx.fillText('观俗 GUANSU', W / 2, 1046);
   return canvas.toDataURL('image/png');

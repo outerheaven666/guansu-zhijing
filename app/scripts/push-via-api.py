@@ -31,7 +31,8 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "app/src/live/tiers.ts",
+    "app/src/shared/sharecard.ts",
+    "app/src/live/App.tsx",
     "app/scripts/push-via-api.py",
 ]
 
@@ -51,7 +52,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "上屏时长调整：节气签 12s / 执镜签 18s / 故人签 23s / 观心签 30s",
+    "message": "签卡视觉分层：节气签个人拈选升级为朱砂横幅主角区（节气名/三候/民俗/诗句淡化），执镜签/故人签/观心签雷同卡头页脚淡化，突出一人一签的差异内容",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
