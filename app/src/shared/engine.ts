@@ -117,6 +117,8 @@ export interface CoachReply {
   confidence: number;
   confidenceNote: string;
   boundary: string;
+  /** 主题是否延续自上文（多轮上下文） */
+  inherited: boolean;
 }
 
 export interface CrisisReply {
@@ -138,12 +140,32 @@ const LENS_AFFINITY: Record<Theme, Array<Quote['tradition']>> = {
   self: ['mao', 'daodejing', 'zhuangzi', 'sunzi'],
 };
 
-/** 生成陪练式回应。historyQuotes 用于避免连续重复同一引文。 */
-export function respond(input: string, recentQuoteIds: string[] = []): EngineReply {
+/** 生成陪练式回应。recentQuoteIds 避免连续重复引文；contextInputs 为最近几轮用户输入，用于多轮上下文延续。 */
+export function respond(input: string, recentQuoteIds: string[] = [], contextInputs: string[] = []): EngineReply {
   const crisis = detectCrisis(input);
   if (crisis) return { kind: 'crisis', hit: crisis };
 
-  const themes = classify(input);
+  let themes = classify(input);
+  let inherited = false;
+
+  if (contextInputs.length > 0) {
+    const ctxThemes = classify(contextInputs.slice(-3).join('。'));
+    if (themes.length === 0 && ctxThemes.length > 0) {
+      // 当前这句没有信号（如「那我再补充一点」），延续上文主题
+      themes = [ctxThemes[0]];
+      inherited = true;
+    } else if (themes.length > 0 && ctxThemes.length > 0 && themes[0].hits.length === 1) {
+      // 当前信号较弱时，若上文主题在本轮也有命中，把它提前保持话题连贯
+      const ctxTop = ctxThemes[0].theme;
+      const idx = themes.findIndex((t) => t.theme === ctxTop);
+      if (idx > 0) {
+        const [t] = themes.splice(idx, 1);
+        themes.unshift(t);
+        inherited = true;
+      }
+    }
+  }
+
   const topTheme: Theme = themes[0]?.theme ?? 'meaning';
 
   // 选引文：优先亲和视角，尽量避免最近用过
@@ -169,7 +191,9 @@ export function respond(input: string, recentQuoteIds: string[] = []): EngineRep
   const boundary =
     themes.length === 0
       ? '你没有给出太多信号，我按「意义与迷茫」给了一面通用的镜子。说得越具体，镜子照得越准。以上引文只提供看问题的角度，不构成建议；涉及健康、法律、重大财务的决定，请咨询专业人士。'
-      : `以上解读基于你提到的「${themes[0].label}」信号，是一种视角而非结论。引文不提供答案，只提供看问题的角度；涉及健康、法律、重大财务的决定，请咨询专业人士。`;
+      : inherited
+        ? `这一轮延续了你上文的「${themes[0].label}」话题。引文不提供答案，只提供看问题的角度；涉及健康、法律、重大财务的决定，请咨询专业人士。`
+        : `以上解读基于你提到的「${themes[0].label}」信号，是一种视角而非结论。引文不提供答案，只提供看问题的角度；涉及健康、法律、重大财务的决定，请咨询专业人士。`;
 
   return {
     kind: 'coach',
@@ -178,5 +202,6 @@ export function respond(input: string, recentQuoteIds: string[] = []): EngineRep
     confidence,
     confidenceNote: '匹配置信度为主观估计（基于关键词命中），表示引文与你所述情境的贴合程度，不代表任何预测准确率。',
     boundary,
+    inherited,
   };
 }

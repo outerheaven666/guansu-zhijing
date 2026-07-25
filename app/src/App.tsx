@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Seal } from '@/shared/layout';
+import { trackEvent } from '@/shared/analytics';
 
 const APPS = [
   {
@@ -22,6 +24,10 @@ const APPS = [
 ];
 
 export default function App() {
+  useEffect(() => {
+    trackEvent('page_view', { app: 'portal' });
+  }, []);
+
   return (
     <div className="ink-body flex min-h-screen flex-col">
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-10 sm:px-6 sm:py-16">

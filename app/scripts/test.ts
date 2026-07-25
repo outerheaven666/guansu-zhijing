@@ -77,6 +77,12 @@ check('选择主题能识别', r2.kind === 'coach' && r2.themes[0]?.theme === 'c
 const r3 = respond('今天天气不错');
 check('无关键词时兜底为意义主题且不崩溃', r3.kind === 'coach' && r3.quotes.length >= 1);
 
+console.log('— 多轮上下文 —');
+const r4 = respond('那我再补充一点情况', [], ['最近工作压力特别大，天天加班，感觉快撑不住了']);
+check('无信号输入可延续上文主题', r4.kind === 'coach' && r4.themes[0]?.theme === 'pressure' && r4.inherited === true);
+const r5 = respond('压力还是很大', [], ['我被诈骗了三十万']);
+check('本轮有信号时不误标延续', r5.kind === 'coach' && r5.inherited === false);
+
 console.log('— 风控护栏 —');
 check('「不想活了」触发心理危机转介', detectCrisis('我觉得活着没意思，不想活了')?.category === 'mental');
 check('「确诊癌症」触发健康转介', detectCrisis('上周确诊了癌症，怎么办')?.category === 'medical');

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DUANYU_CARDS, NARRATIVE_INTRO } from '@/shared/narrative';
 import { SectionTitle } from '@/shared/layout';
+import { trackEvent } from '@/shared/analytics';
 
 const STORAGE_KEY = 'guansu.narrative.notes.v1';
 
@@ -89,10 +90,14 @@ export default function NarrativeLab() {
                     placeholder="写下你的回答……"
                     value={cardNotes[i] ?? ''}
                     onChange={(e) => {
+                      const wasEmpty = !(cardNotes[i] ?? '').trim();
                       setNotes((prev) => ({
                         ...prev,
                         [card.id]: { ...(prev[card.id] ?? {}), [i]: e.target.value },
                       }));
+                      if (wasEmpty && e.target.value.trim()) {
+                        trackEvent('narrative_save', { card: card.id });
+                      }
                       setSavedTip(true);
                       window.setTimeout(() => setSavedTip(false), 1500);
                     }}

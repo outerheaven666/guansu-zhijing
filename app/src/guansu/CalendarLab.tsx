@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { readCalendar } from '@/shared/ganzhi';
 import { JIEQI_INFO, JIEQI_ORDER } from '@/shared/jieqi';
 import { SectionTitle } from '@/shared/layout';
+import { drawShareCard } from '@/shared/sharecard';
+import { trackEvent } from '@/shared/analytics';
 
 function todayStr() {
   const d = new Date();
@@ -11,6 +13,7 @@ function todayStr() {
 export default function CalendarLab() {
   const [dateStr, setDateStr] = useState(todayStr());
   const [pickedTerm, setPickedTerm] = useState<string | null>(null);
+  const [cardUrl, setCardUrl] = useState<string | null>(null);
 
   const reading = useMemo(() => {
     const [y, m, d] = dateStr.split('-').map(Number);
@@ -20,6 +23,31 @@ export default function CalendarLab() {
 
   const focusTerm = pickedTerm ?? reading?.prevTerm?.name ?? null;
   const termInfo = focusTerm ? JIEQI_INFO[focusTerm] : null;
+
+  const generateCard = () => {
+    if (!reading || !termInfo || !focusTerm) return;
+    const daysText =
+      focusTerm === reading.prevTerm?.name
+        ? `正值${focusTerm}时节`
+        : focusTerm === reading.nextTerm?.name && reading.daysToNext !== null
+          ? `距${focusTerm}还有约 ${reading.daysToNext} 天`
+          : '四时流转 · 顺时而为';
+    const canvas = document.createElement('canvas');
+    drawShareCard(canvas, {
+      termName: termInfo.name,
+      pinyin: termInfo.pinyin,
+      longitude: termInfo.longitude,
+      dateLabel: `${reading.year} 年 ${reading.month} 月 ${reading.day} 日 · ${reading.weekday}`,
+      pillars: `${reading.yearPillar}年  ${reading.monthPillar}月  ${reading.dayPillar}日`,
+      daysText,
+      phenology: termInfo.phenology,
+      customs: termInfo.customs,
+      poemLine: termInfo.poem.line,
+      poemSource: termInfo.poem.source,
+    });
+    setCardUrl(canvas.toDataURL('image/png'));
+    trackEvent('sharecard_generate', { term: termInfo.name });
+  };
 
   return (
     <div className="space-y-6">
@@ -92,6 +120,9 @@ export default function CalendarLab() {
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <h3 className="font-brush text-3xl ink-title">{termInfo.name}</h3>
             <span className="text-sm ink-sub">{termInfo.pinyin} · {termInfo.longitude}</span>
+            <button className="btn-cinnabar ml-auto !px-3 !py-1.5 text-xs" onClick={generateCard}>
+              生成分享卡
+            </button>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {termInfo.phenology.map((p) => (
@@ -126,6 +157,33 @@ export default function CalendarLab() {
           ))}
         </div>
       </div>
+
+      {/* 分享卡预览 */}
+      {cardUrl && termInfo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setCardUrl(null)}
+        >
+          <div
+            className="paper-card w-full max-w-sm rounded-xl p-4"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="节气分享卡预览"
+          >
+            <img src={cardUrl} alt={`${termInfo.name} 节气分享卡`} className="w-full rounded-lg border hairline" />
+            <div className="mt-3 flex gap-2">
+              <a className="btn-cinnabar flex-1 text-center" href={cardUrl} download={`观俗-${termInfo.name}-节气卡.png`}>
+                保存图片
+              </a>
+              <button className="btn-ink-outline flex-1" onClick={() => setCardUrl(null)}>
+                关闭
+              </button>
+            </div>
+            <p className="mt-2 text-center text-[11px] ink-sub">长按图片也可直接分享给朋友</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

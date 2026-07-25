@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AppShell, RedLineNotice } from '@/shared/layout';
+import { trackEvent } from '@/shared/analytics';
+import { ErrorBoundary } from '@/shared/ErrorBoundary';
 import CalendarLab from './CalendarLab';
 import NarrativeLab from './NarrativeLab';
 import YunqiMuseum from './YunqiMuseum';
@@ -14,8 +16,16 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-export default function App() {
+function GuansuApp() {
   const [tab, setTab] = useState<TabId>('calendar');
+
+  useEffect(() => {
+    trackEvent('page_view', { app: 'guansu' });
+  }, []);
+
+  useEffect(() => {
+    trackEvent('guansu_tab', { tab });
+  }, [tab]);
 
   return (
     <AppShell appName="观俗" appMark="观俗" tagline="人生叙事与民俗研究模式 —— 文化理解，而非预测">
@@ -55,5 +65,13 @@ export default function App() {
         ]}
       />
     </AppShell>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary appName="观俗">
+      <GuansuApp />
+    </ErrorBoundary>
   );
 }
