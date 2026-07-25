@@ -31,8 +31,8 @@ export const GIFT_TIERS: GiftTier[] = [
     serviceName: '节气签',
     serviceDesc: '当令节气文化卡：昵称入卡，含干支、三候、民俗与诗句',
     plainDesc: '借老祖宗的时令智慧给你一个节拍：天地正走到哪一步，你的生活该为什么留心、为什么松手',
-    displaySeconds: 8,
-    perks: ['专属昵称节气卡 ×1', '上屏展示 8 秒'],
+    displaySeconds: 12,
+    perks: ['专属昵称节气卡 ×1', '上屏展示 12 秒'],
   },
   {
     id: 't2',
@@ -43,8 +43,8 @@ export const GIFT_TIERS: GiftTier[] = [
     serviceName: '执镜签',
     serviceDesc: '经典引文签：按本周直播主题，抽一条庄子/道德经/孙子/毛选/阴符经原文，附出处、镜问与小实验',
     plainDesc: '从庄子、道德经、孙子、毛选、阴符经里为你拈一面镜子：不给答案，只帮你把当下这团乱麻照清楚',
-    displaySeconds: 12,
-    perks: ['专属昵称引文签 ×1', '含出处 + 镜问 + 小实验', '上屏展示 12 秒'],
+    displaySeconds: 18,
+    perks: ['专属昵称引文签 ×1', '含出处 + 镜问 + 小实验', '上屏展示 18 秒'],
   },
   {
     id: 't3',
@@ -55,8 +55,8 @@ export const GIFT_TIERS: GiftTier[] = [
     serviceName: '故人签',
     serviceDesc: '古人处境镜：从十六人签池随机拈一位（苏轼/王阳明/张骞/徐霞客……），看他在比你难得多的处境里如何自处',
     plainDesc: '让一位古人做你的镜子：他在比你难得多的处境里是怎么站住的——看别人的局，破自己的局',
-    displaySeconds: 18,
-    perks: ['古人处境卡 ×1（十六人签池随机）', '含处境史实 + 镜问', '上屏展示 18 秒', '主播口播致谢'],
+    displaySeconds: 23,
+    perks: ['古人处境卡 ×1（十六人签池随机）', '含处境史实 + 镜问', '上屏展示 23 秒', '主播口播致谢'],
   },
   {
     id: 't4',

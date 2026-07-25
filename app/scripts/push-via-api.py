@@ -31,8 +31,7 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "app/src/live/App.tsx",
-    "app/src/index.css",
+    "app/src/live/tiers.ts",
     "app/scripts/push-via-api.py",
 ]
 
@@ -52,7 +51,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "待机页动态化：呼吸标题+漂浮墨点+8秒暖场轮播+底部滚动条，防止长时间静止被平台误判非直播",
+    "message": "上屏时长调整：节气签 12s / 执镜签 18s / 故人签 23s / 观心签 30s",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
