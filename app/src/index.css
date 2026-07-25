@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.625rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ============ 观俗 · 执镜 国风主题 ============ */
+@layer base {
+  :root {
+    --paper: 43 38% 94%;
+    --paper-deep: 40 30% 89%;
+    --ink: 30 12% 12%;
+    --ink-soft: 30 8% 32%;
+    --cinnabar: 4 62% 40%;
+    --cinnabar-deep: 4 66% 32%;
+    --pine: 160 22% 26%;
+    --gold: 38 48% 46%;
+    --line: 36 18% 78%;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .ink-body {
+    background-color: hsl(var(--paper));
+    color: hsl(var(--ink));
+    font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, hsl(43 45% 96% / 0.9), transparent 60%),
+      radial-gradient(ellipse at 90% 100%, hsl(40 30% 88% / 0.6), transparent 55%);
+    min-height: 100vh;
+  }
+  .font-brush {
+    font-family: "Ma Shan Zheng", "Zhi Mang Xing", "Kaiti SC", "KaiTi", "STKaiti", cursive;
+  }
+  .paper-card {
+    background-color: hsl(45 40% 97%);
+    border: 1px solid hsl(var(--line));
+    box-shadow: 0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 10px 30px -18px hsl(30 20% 30% / 0.35);
+  }
+  .paper-card-deep {
+    background-color: hsl(var(--paper-deep));
+    border: 1px solid hsl(var(--line));
+  }
+  .ink-title {
+    color: hsl(var(--ink));
+    letter-spacing: 0.08em;
+  }
+  .ink-sub {
+    color: hsl(var(--ink-soft));
+  }
+  .text-cinnabar { color: hsl(var(--cinnabar)); }
+  .bg-cinnabar { background-color: hsl(var(--cinnabar)); }
+  .border-cinnabar { border-color: hsl(var(--cinnabar)); }
+  .text-pine { color: hsl(var(--pine)); }
+  .text-gold { color: hsl(var(--gold)); }
+  .hairline {
+    border-color: hsl(var(--line));
+  }
+  /* 印章 */
+  .seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: hsl(var(--cinnabar));
+    color: hsl(43 40% 96%);
+    border-radius: 4px;
+    font-family: "Kaiti SC", "KaiTi", "STKaiti", serif;
+    box-shadow: 0 2px 6px hsl(4 62% 30% / 0.4);
+    writing-mode: vertical-rl;
+    letter-spacing: 0.2em;
+    padding: 0.4rem 0.25rem;
+  }
+  .btn-ink {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm transition-colors;
+    background-color: hsl(var(--ink));
+    color: hsl(43 40% 96%);
+  }
+  .btn-ink:hover { background-color: hsl(30 14% 22%); }
+  .btn-ink-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm transition-colors;
+    border: 1px solid hsl(var(--ink) / 0.35);
+    color: hsl(var(--ink));
+    background: transparent;
+  }
+  .btn-ink-outline:hover { background-color: hsl(var(--ink) / 0.06); }
+  .btn-cinnabar {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm transition-colors;
+    background-color: hsl(var(--cinnabar));
+    color: hsl(43 40% 96%);
+  }
+  .btn-cinnabar:hover { background-color: hsl(var(--cinnabar-deep)); }
+  .vertical-text { writing-mode: vertical-rl; letter-spacing: 0.3em; }
+  .quote-block {
+    border-left: 3px solid hsl(var(--cinnabar));
+    background-color: hsl(45 40% 96%);
+  }
+  .input-ink {
+    @apply w-full rounded-md px-3 py-2 text-sm outline-none transition-shadow;
+    background-color: hsl(45 40% 98%);
+    border: 1px solid hsl(var(--line));
+    color: hsl(var(--ink));
+  }
+  .input-ink:focus {
+    box-shadow: 0 0 0 2px hsl(var(--cinnabar) / 0.25);
+    border-color: hsl(var(--cinnabar) / 0.6);
+  }
+  .tab-ink {
+    @apply rounded-md px-3 py-2 text-sm transition-colors whitespace-nowrap;
+    color: hsl(var(--ink-soft));
+    border: 1px solid transparent;
+  }
+  .tab-ink:hover { background-color: hsl(var(--ink) / 0.05); }
+  .tab-ink[data-active="true"] {
+    color: hsl(var(--cinnabar));
+    border-color: hsl(var(--cinnabar) / 0.5);
+    background-color: hsl(45 40% 97%);
+  }
+}
