@@ -41,11 +41,25 @@ const SIM_NAMES = ['青梅煮酒', '终南过客', '采薇', '南山下', '听�
 
 /* ================= 卡片生成 ================= */
 
-function makeTermCard(nickname: string): string {
+/** 昵称种子：同一昵称同一天同一节气，拈选结果可复现；不同昵称结果不同 */
+function seedOf(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function makeTermCard(nickname: string, cardNo: string): string {
   const termName = currentTermName();
   const info = JIEQI_INFO[termName];
   const today = new Date();
   const r = readCalendar(today.getFullYear(), today.getMonth() + 1, today.getDate());
+  // 个人拈选：以「昵称+日期+节气」为种，从三候与民俗中各拈一条——同一节气，一人一签
+  const seed = seedOf(`${nickname}::${r.year}-${r.month}-${r.day}::${termName}`);
+  const hou = info.phenology[seed % info.phenology.length];
+  const customBits = info.customs.split(/[；;。]/).map((s) => s.trim()).filter((s) => s.length >= 4);
+  const ya = customBits.length > 0 ? customBits[seed % customBits.length] : '';
+  const personal = [`为你拈得 · ${hou}`];
+  if (ya) personal.push(`今日雅事 · ${ya}`);
   const canvas = document.createElement('canvas');
   drawShareCard(canvas, {
     termName: info.name,
@@ -59,12 +73,15 @@ function makeTermCard(nickname: string): string {
     poemLine: info.poem.line,
     poemSource: info.poem.source,
     nickname,
+    cardNo,
+    personal,
   });
   return canvas.toDataURL('image/png');
 }
 
-function makeMirrorCard(nickname: string, theme: Theme): string {
-  const q = drawQuoteFor(nickname, theme);
+function makeMirrorCard(nickname: string, theme: Theme, cardNo: string, salt: string): string {
+  // 种子 = 昵称 + 主题 + 礼物名：不同人、不同礼物，抽到的引文不同
+  const q = drawQuoteFor(nickname, theme, salt);
   const meta = TRADITION_META[q.tradition];
   const canvas = document.createElement('canvas');
   drawMirrorCard(canvas, {
@@ -77,11 +94,12 @@ function makeMirrorCard(nickname: string, theme: Theme): string {
     quoteSource: q.source,
     ask: q.ask,
     experiment: q.experiment,
+    cardNo,
   });
   return canvas.toDataURL('image/png');
 }
 
-function makeYunqiCard(nickname: string): string {
+function makeYunqiCard(nickname: string, cardNo: string): string {
   const y = new Date().getFullYear();
   const idx = (((y - 4) % 60) + 60) % 60;
   const ganzhi = jiaziName(idx);
@@ -105,6 +123,12 @@ function makeYunqiCard(nickname: string): string {
   ctx.fillStyle = '#9e2b25';
   ctx.font = `26px ${KAI}`;
   ctx.fillText(`赠  @${nickname}`, W / 2, 134);
+  if (cardNo) {
+    ctx.textAlign = 'right';
+    ctx.font = `20px ${KAI}`;
+    ctx.fillText(cardNo, W - 52, 60);
+    ctx.textAlign = 'center';
+  }
   ctx.fillStyle = '#2b2620';
   ctx.font = `88px ${KAI}`;
   ctx.fillText(`${y} · ${ganzhi}`, W / 2, 268);
@@ -133,13 +157,14 @@ function makeYunqiCard(nickname: string): string {
   return canvas.toDataURL('image/png');
 }
 
-function cardsForEvent(e: GiftEvent, theme: Theme): { tier: GiftTier; cards: string[] } {
+function cardsForEvent(e: GiftEvent, theme: Theme, seq: number): { tier: GiftTier; cards: string[] } {
   const tier = tierOfDiamond(e.diamond);
+  const cardNo = `第 ${seq} 签 · 本场唯一`;
   const cards: string[] = [];
-  if (tier.id === 't1') cards.push(makeTermCard(e.nickname));
-  if (tier.id === 't2') cards.push(makeMirrorCard(e.nickname, theme));
-  if (tier.id === 't3') cards.push(makeTermCard(e.nickname), makeMirrorCard(e.nickname, theme), makeYunqiCard(e.nickname));
-  if (tier.id === 't4') cards.push(makeTermCard(e.nickname), makeMirrorCard(e.nickname, theme), makeYunqiCard(e.nickname));
+  if (tier.id === 't1') cards.push(makeTermCard(e.nickname, cardNo));
+  if (tier.id === 't2') cards.push(makeMirrorCard(e.nickname, theme, cardNo, e.giftName));
+  if (tier.id === 't3') cards.push(makeTermCard(e.nickname, cardNo), makeMirrorCard(e.nickname, theme, cardNo, e.giftName), makeYunqiCard(e.nickname, cardNo));
+  if (tier.id === 't4') cards.push(makeTermCard(e.nickname, cardNo), makeMirrorCard(e.nickname, theme, cardNo, e.giftName), makeYunqiCard(e.nickname, cardNo));
   return { tier, cards };
 }
 
@@ -228,9 +253,9 @@ function LiveApp() {
     if (active || queue.length === 0) return;
     const [next, ...rest] = queue;
     setQueue(rest);
-    const { tier, cards } = cardsForEvent(next, theme);
+    const { tier, cards } = cardsForEvent(next, theme, events.length || 1);
     setActive({ event: next, tier, cards, cardIndex: 0, remaining: tier.displaySeconds });
-  }, [active, queue, theme]);
+  }, [active, queue, theme, events.length]);
 
   // 倒计时与多卡轮播
   useEffect(() => {

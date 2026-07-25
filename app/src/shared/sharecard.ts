@@ -13,6 +13,10 @@ export interface ShareCardData {
   poemSource: string;
   /** 直播专属：昵称入卡 */
   nickname?: string;
+  /** 直播专属：唯一签号（如「第 7 签 · 当日唯一」） */
+  cardNo?: string;
+  /** 直播专属：个人拈选行（昵称种子化，一人一签，如「为你拈得 · 二候 土润溽暑」） */
+  personal?: string[];
 }
 
 const KAI = '"Kaiti SC","KaiTi","STKaiti","Noto Serif SC","Songti SC",serif';
@@ -63,6 +67,14 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
   ctx.font = `24px ${KAI}`;
   ctx.fillText('观 俗 · 二 十 四 节 气', W / 2, 108);
 
+  if (d.cardNo) {
+    ctx.textAlign = 'right';
+    ctx.fillStyle = CINNABAR;
+    ctx.font = `22px ${KAI}`;
+    ctx.fillText(d.cardNo, W - 70, 88);
+    ctx.textAlign = 'center';
+  }
+
   if (d.nickname) {
     ctx.fillStyle = CINNABAR;
     ctx.font = `26px ${KAI}`;
@@ -93,10 +105,18 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
   ctx.font = `26px ${KAI}`;
   ctx.fillText(d.daysText, W / 2, 512);
 
-  // 三候
+  // 个人拈选（昵称种子化：同一节气，每人拈得的候与雅事不同）
+  if (d.personal && d.personal.length > 0) {
+    ctx.fillStyle = CINNABAR;
+    ctx.font = `24px ${KAI}`;
+    d.personal.slice(0, 2).forEach((p, i) => ctx.fillText(p, W / 2, 548 + i * 36));
+  }
+
+  // 三候（有个人拈选行时整体下移，避免重叠）
+  const phStart = d.personal && d.personal.length > 0 ? 622 : 586;
   ctx.fillStyle = INK;
   ctx.font = `28px ${KAI}`;
-  d.phenology.forEach((p, i) => ctx.fillText(p, W / 2, 586 + i * 44));
+  d.phenology.forEach((p, i) => ctx.fillText(p, W / 2, phStart + i * 44));
 
   // 民俗摘录（最多 6 行）
   ctx.textAlign = 'left';
@@ -131,6 +151,8 @@ export interface MirrorCardData {
   quoteSource: string;
   ask: string;
   experiment: string;
+  /** 唯一签号（如「第 7 签」） */
+  cardNo?: string;
 }
 
 export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): void {
@@ -152,6 +174,14 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
   ctx.fillStyle = INK_SOFT;
   ctx.font = `24px ${KAI}`;
   ctx.fillText(`执 镜 · ${d.serviceName}`, W / 2, 104);
+
+  if (d.cardNo) {
+    ctx.textAlign = 'right';
+    ctx.fillStyle = CINNABAR;
+    ctx.font = `22px ${KAI}`;
+    ctx.fillText(d.cardNo, W - 70, 88);
+    ctx.textAlign = 'center';
+  }
 
   ctx.fillStyle = CINNABAR;
   ctx.font = `28px ${KAI}`;

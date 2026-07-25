@@ -32,6 +32,7 @@ def api(method, path, payload=None):
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
     "app/src/live/App.tsx",
+    "app/src/shared/sharecard.ts",
     "app/scripts/push-via-api.py",
 ]
 
@@ -51,7 +52,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "直播互动台新增观众纯净模式（?clean=1）：OBS 浏览器源专用视图，隐藏主播控件",
+    "message": "签卡私人订制：唯一签号（本场第 N 签）+ 昵称种子拈选（同一节气一人一候一雅事）+ 执镜签种子加入礼物名",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
