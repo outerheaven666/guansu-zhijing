@@ -189,3 +189,41 @@
     background-color: hsl(45 40% 97%);
   }
 }
+/* ===== 直播待机动态层：防长时间静止被平台误判非直播 ===== */
+@keyframes ink-breathe {
+  0%, 100% { opacity: 0.7; transform: scale(0.985); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes ink-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ink-drift-a {
+  from { transform: translate(0, 0); }
+  to { transform: translate(28px, -36px); }
+}
+@keyframes ink-drift-b {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-32px, 26px); }
+}
+@keyframes ink-drift-c {
+  from { transform: translate(0, 0); }
+  to { transform: translate(20px, 32px); }
+}
+@keyframes ink-ember {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 0.85; transform: scale(1.2); }
+}
+@keyframes ink-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@layer components {
+  .anim-breathe { animation: ink-breathe 4.5s ease-in-out infinite; }
+  .anim-fade-in { animation: ink-fade-in 0.8s ease-out; }
+  .anim-drift-a { animation: ink-drift-a 14s ease-in-out infinite alternate; }
+  .anim-drift-b { animation: ink-drift-b 18s ease-in-out infinite alternate; }
+  .anim-drift-c { animation: ink-drift-c 22s ease-in-out infinite alternate; }
+  .anim-ember { animation: ink-ember 3.2s ease-in-out infinite; }
+  .anim-marquee { animation: ink-marquee 40s linear infinite; }
+}

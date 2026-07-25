@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GIFT_TIERS, currentTermName, drawLotFor, estimatePayoutYuan, tierOfDiamond, type GiftTier } from './tiers';
-import { THEME_LABELS, TRADITION_META, type Theme } from '@/shared/quotes';
+import { QUOTES, THEME_LABELS, TRADITION_META, type Theme } from '@/shared/quotes';
 import { JIEQI_INFO } from '@/shared/jieqi';
 import { readCalendar } from '@/shared/ganzhi';
 import { drawMirrorCard, drawShareCard, wrapText } from '@/shared/sharecard';
@@ -38,6 +38,29 @@ const SIM_GIFTS = [
   { giftName: '嘉年华', diamond: 3000 },
 ];
 const SIM_NAMES = ['青梅煮酒', '终南过客', '采薇', '南山下', '听松', '一苇渡江', '知行合一'];
+
+/** 待机暖场条目：当令节气 + 按日轮换的经典与功课，保证无人刷礼物时画面内容也在流动 */
+interface WarmItem { tag: string; text: string; sub: string }
+function buildWarmItems(): WarmItem[] {
+  const term = JIEQI_INFO[currentTermName()];
+  const daySeed = Math.floor(Date.now() / 86400000);
+  const items: WarmItem[] = [
+    {
+      tag: `当令 · ${term.name}`,
+      text: term.phenology.join('　'),
+      sub: `「${term.poem.line}」—— ${term.poem.source}`,
+    },
+  ];
+  for (let i = 0; i < 3; i++) {
+    const q = QUOTES[(daySeed * 7 + i * 19) % QUOTES.length];
+    items.push({ tag: `暖场 · ${TRADITION_META[q.tradition].name}`, text: q.text, sub: `${q.source} · ${q.ask}` });
+  }
+  for (let i = 0; i < 2; i++) {
+    const d = DAILY_LOTS[(daySeed * 5 + i * 11) % DAILY_LOTS.length];
+    items.push({ tag: `今日功课 · ${d.kind}`, text: d.text, sub: '刷个小心心，拈一张写着你名字的节气签' });
+  }
+  return items;
+}
 
 /* ================= 卡片生成 ================= */
 
@@ -301,6 +324,15 @@ function LiveApp() {
 
   // 对接模式：① 本地直播服务 SSE（同源 /api/events） ② BroadcastChannel ③ window.__gzLiveGift
   const [relayOk, setRelayOk] = useState(false);
+
+  // 待机暖场轮播：每 8 秒换一条，画面始终有内容流动
+  const warmItems = useMemo(buildWarmItems, []);
+  const [warmIdx, setWarmIdx] = useState(0);
+  useEffect(() => {
+    const t = window.setInterval(() => setWarmIdx((i) => (i + 1) % warmItems.length), 8000);
+    return () => window.clearInterval(t);
+  }, [warmItems.length]);
+  const warm = warmItems[warmIdx];
   useEffect(() => {
     window.__gzLiveGift = (e) => ingest(e);
     const bc = new BroadcastChannel(CHANNEL);
@@ -405,9 +437,26 @@ function LiveApp() {
       <div className="mt-3 text-xs ink-sub">长按 / 截图即可带走你的专属卡 · 排队 {queue.length} 位</div>
     </div>
   ) : (
-    <div className="text-center">
-      <div className="font-brush text-6xl ink-title">以文会友</div>
+    <div className="relative text-center">
+      {/* 待机粒子：缓慢漂移，画面持续微动，防平台误判静止 */}
+      <div aria-hidden className="pointer-events-none absolute -inset-12">
+        <span className="anim-drift-a absolute left-[6%] top-[10%] h-3 w-3 rounded-full bg-cinnabar opacity-20" />
+        <span className="anim-drift-b absolute right-[8%] top-[22%] h-2 w-2 rounded-full bg-pine opacity-25" />
+        <span className="anim-drift-c absolute left-[14%] bottom-[16%] h-2.5 w-2.5 rounded-full bg-gold opacity-25" />
+        <span className="anim-drift-b absolute right-[16%] bottom-[8%] h-3 w-3 rounded-full bg-cinnabar opacity-15" />
+        <span className="anim-ember absolute left-[46%] top-[4%] h-1.5 w-1.5 rounded-full bg-cinnabar opacity-30" />
+        <span className="anim-ember absolute right-[38%] bottom-[24%] h-1.5 w-1.5 rounded-full bg-pine opacity-30" />
+      </div>
+      <div className="anim-breathe font-brush text-6xl ink-title">以文会友</div>
       <p className="mt-4 text-base ink-sub">拈一段传统智慧，照一照当下的自己 · 签无吉凶，皆是镜子</p>
+      {/* 暖场轮播：每 8 秒自动换一条，待机也有内容在流动 */}
+      <div className="mx-auto mt-6 max-w-xl" key={warmIdx}>
+        <div className="anim-fade-in rounded-xl border hairline px-6 py-4">
+          <div className="text-xs font-bold text-cinnabar">{warm.tag}</div>
+          <div className="mt-1.5 text-lg leading-relaxed ink-title">{warm.text}</div>
+          <div className="mt-1 line-clamp-2 text-xs ink-sub">{warm.sub}</div>
+        </div>
+      </div>
       {/* 刷什么 → 得什么：普通模式待机时常驻展示；clean 模式移入左栏常驻，此处不再重复 */}
       {!clean && (
       <div className="mx-auto mt-6 max-w-lg rounded-xl border-2 p-5 text-left" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
@@ -520,6 +569,17 @@ function LiveApp() {
         <main className="flex min-w-0 flex-1 flex-col items-center justify-center">
           {stage}
         </main>
+
+        {/* 底部滚动条：持续横向滚动，随时有像素变化 */}
+        <div className="pointer-events-none fixed bottom-0 left-0 right-0 overflow-hidden border-t hairline bg-[hsl(var(--paper))] py-1.5">
+          <div className="anim-marquee flex w-max whitespace-nowrap text-xs ink-sub">
+            {[0, 1].map((k) => (
+              <span key={k}>
+                {'刷礼物即上屏 · 先到先得　▏　节气签 ← 小心心 / 玫瑰　▏　执镜签 ← 你真好看 / 墨镜　▏　故人签 ← 热气球 / 马车　▏　观心签 ← 火箭 / 嘉年华　▏　签无吉凶，皆是镜子　▏　文化内容 · 不预测 · 不占卜 · 不承诺改运　▏　'}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
