@@ -262,6 +262,55 @@ function LiveApp() {
 
   const totalDiamond = events.reduce((s, e) => s + e.diamond, 0);
 
+  // 观众纯净模式：?clean=1 只保留上屏舞台（OBS 浏览器源专用，无主播控件）
+  const clean = new URLSearchParams(window.location.search).has('clean');
+
+  // 上屏舞台（观众可见部分，普通模式与纯净模式共用）
+  const stage = active ? (
+    <div className="flex w-full flex-col items-center">
+      <div className="mb-3 flex items-center gap-3">
+        <span className="rounded-full bg-cinnabar px-3 py-1 text-sm font-bold text-[hsl(43_40%_96%)]">
+          {active.tier.serviceName}
+        </span>
+        <span className="text-lg font-bold ink-title">@{active.event.nickname}</span>
+        <span className="text-sm ink-sub">送出 {active.event.giftName}</span>
+        <span className="rounded-full border hairline px-2 py-0.5 text-xs ink-sub">{active.remaining}s</span>
+      </div>
+      <img
+        src={active.cards[active.cardIndex]}
+        alt={`${active.tier.serviceName}卡片`}
+        className="max-h-[68vh] rounded-lg border-2 shadow-xl"
+        style={{ borderColor: 'hsl(var(--cinnabar))' }}
+      />
+      {active.cards.length > 1 && (
+        <div className="mt-3 flex gap-1.5">
+          {active.cards.map((_, i) => (
+            <span key={i} className={`h-1.5 w-6 rounded-full ${i === active.cardIndex ? 'bg-cinnabar' : 'bg-[hsl(var(--line))]'}`} />
+          ))}
+        </div>
+      )}
+      <div className="mt-3 text-xs ink-sub">长按 / 截图即可带走你的专属卡 · 排队 {queue.length} 位</div>
+    </div>
+  ) : (
+    <div className="text-center">
+      <div className="font-brush text-5xl ink-title">以文会友</div>
+      <p className="mt-4 max-w-sm text-sm leading-relaxed ink-sub">
+        刷礼物得专属文化签：节气签 · 执镜签 · 双镜签 · 典藏签
+        <br />
+        文化内容服务，不含预测、不含命理
+      </p>
+      {queue.length > 0 && <p className="mt-3 text-sm text-cinnabar">准备中……排队 {queue.length} 位</p>}
+    </div>
+  );
+
+  if (clean) {
+    return (
+      <div className="ink-body flex min-h-screen flex-col items-center justify-center p-6">
+        {stage}
+      </div>
+    );
+  }
+
   return (
     <div className="ink-body min-h-screen">
       <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
@@ -275,6 +324,7 @@ function LiveApp() {
           <div className="flex gap-2 text-xs">
             <button className="tab-ink" data-active={mode === 'sim'} onClick={() => setMode('sim')}>演示模式</button>
             <button className="tab-ink" data-active={mode === 'hook'} onClick={() => setMode('hook')}>对接模式</button>
+            <a className="btn-ink-outline" href="?clean=1" target="_blank" rel="noreferrer">观众模式（OBS 用）</a>
             <a className="btn-ink-outline" href="../index.html">返回门户</a>
           </div>
         </header>
@@ -422,47 +472,12 @@ window.__gzLiveGift({ id, nickname, giftName, diamond });`}
             </div>
           </div>
 
-          {/* 右栏：上屏区（OBS 浏览器源截取此区域） */}
+          {/* 右栏：上屏区（OBS 浏览器源截取此区域，或直接用 ?clean=1 纯净模式） */}
           <div className="paper-card relative flex min-h-[560px] flex-col items-center justify-center overflow-hidden rounded-xl p-6">
             <div className="absolute left-3 top-3 rounded bg-black/60 px-2 py-1 text-[10px] text-white/80">
               OBS 上屏区 · 浏览器源截取本卡片
             </div>
-            {active ? (
-              <div className="flex w-full flex-col items-center">
-                <div className="mb-3 flex items-center gap-3">
-                  <span className="rounded-full bg-cinnabar px-3 py-1 text-sm font-bold text-[hsl(43_40%_96%)]">
-                    {active.tier.serviceName}
-                  </span>
-                  <span className="text-lg font-bold ink-title">@{active.event.nickname}</span>
-                  <span className="text-sm ink-sub">送出 {active.event.giftName}</span>
-                  <span className="rounded-full border hairline px-2 py-0.5 text-xs ink-sub">{active.remaining}s</span>
-                </div>
-                <img
-                  src={active.cards[active.cardIndex]}
-                  alt={`${active.tier.serviceName}卡片`}
-                  className="max-h-[68vh] rounded-lg border-2 shadow-xl"
-                  style={{ borderColor: 'hsl(var(--cinnabar))' }}
-                />
-                {active.cards.length > 1 && (
-                  <div className="mt-3 flex gap-1.5">
-                    {active.cards.map((_, i) => (
-                      <span key={i} className={`h-1.5 w-6 rounded-full ${i === active.cardIndex ? 'bg-cinnabar' : 'bg-[hsl(var(--line))]'}`} />
-                    ))}
-                  </div>
-                )}
-                <div className="mt-3 text-xs ink-sub">长按 / 截图即可带走你的专属卡 · 排队 {queue.length} 位</div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="font-brush text-5xl ink-title">以文会友</div>
-                <p className="mt-4 max-w-sm text-sm leading-relaxed ink-sub">
-                  刷礼物得专属文化签：节气签 · 执镜签 · 双镜签 · 典藏签
-                  <br />
-                  文化内容服务，不含预测、不含命理
-                </p>
-                {queue.length > 0 && <p className="mt-3 text-sm text-cinnabar">准备中……排队 {queue.length} 位</p>}
-              </div>
-            )}
+            {stage}
           </div>
         </div>
 

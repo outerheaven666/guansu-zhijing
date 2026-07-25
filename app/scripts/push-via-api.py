@@ -31,9 +31,8 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "app/scripts/live-relay.mjs",
+    "app/src/live/App.tsx",
     "app/scripts/push-via-api.py",
-    "connector/douyin-gift-connector.user.js",
 ]
 
 head = api("GET", f"/repos/{REPO}/git/ref/heads/main")
@@ -52,7 +51,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "连接器 v0.8 跑通真实礼物链路：双通道捕获+双重去重+映射表清毒；relay 新增 /api/debug 样本落盘",
+    "message": "直播互动台新增观众纯净模式（?clean=1）：OBS 浏览器源专用视图，隐藏主播控件",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
