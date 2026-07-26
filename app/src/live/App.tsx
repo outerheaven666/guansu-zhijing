@@ -289,6 +289,9 @@ function cardsForEvent(e: GiftEvent, theme: Theme, seq: number): { tier: GiftTie
 
 /* ================= 主界面 ================= */
 
+/** 版本角标：每次部署递增，用于现场确认页面是否为最新版（防缓存误导排查） */
+const LIVE_VERSION = 'v1.5 · 07-26';
+
 interface ActiveShow {
   event: GiftEvent;
   tier: GiftTier;
@@ -528,6 +531,8 @@ function LiveApp() {
     // 观众纯净模式（OBS 浏览器源）：左栏上=刷什么得什么（常驻大字），左栏下=排队公示，右栏=签图舞台
     return (
       <div className="ink-body flex min-h-screen gap-5 p-5">
+        {/* 版本角标：现场确认是否最新版 */}
+        <div className="fixed right-2 top-2 z-50 rounded bg-black/50 px-2 py-0.5 text-[10px] text-white/70">{LIVE_VERSION}</div>
         {/* 左栏 */}
         <aside className="flex w-[360px] shrink-0 flex-col gap-4">
           {/* 刷什么 · 得什么（常驻，手机上也能看清的字号） */}
@@ -610,7 +615,7 @@ function LiveApp() {
           <span className="seal h-12 w-7 text-xs">直播</span>
           <div className="min-w-0 flex-1">
             <h1 className="ink-title text-lg font-bold">观俗 · 执镜 直播互动台</h1>
-            <p className="text-[11px] ink-sub">礼物分档 → 差异化文化内容服务 · OBS 浏览器源直接上屏 · 文化内容，不含预测</p>
+            <p className="text-[11px] ink-sub">礼物分档 → 差异化文化内容服务 · OBS 浏览器源直接上屏 · 文化内容，不含预测 · {LIVE_VERSION}</p>
           </div>
           <div className="flex gap-2 text-xs">
             <button className="tab-ink" data-active={mode === 'sim'} onClick={() => setMode('sim')}>演示模式</button>

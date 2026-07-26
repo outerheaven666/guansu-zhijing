@@ -31,9 +31,7 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "app/src/live/pools.ts",
     "app/src/live/App.tsx",
-    "app/src/live/tiers.ts",
     "app/scripts/push-via-api.py",
 ]
 
@@ -53,7 +51,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "根治节气签雷同：主角区三行改从镜语36/功课26/雅趣24独立池按昵称种子拈取（约2.2万种组合，与共享节气资料脱钩）；故人签/观心签新增持签功课行；观心签三问限两行防溢出",
+    "message": "直播页加版本角标（v1.5）：现场确认页面是否为最新版，避免浏览器/OBS缓存旧代码误导排查",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
