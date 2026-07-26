@@ -31,8 +31,8 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "app/src/live/App.tsx",
     "connector/douyin-gift-connector.user.js",
+    "connector/启动防休眠浏览器.bat",
     "app/scripts/push-via-api.py",
 ]
 
@@ -52,7 +52,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "修复重复签卡 bug：连击动画/聊天重渲染产生「观众」兜底昵称的重复上报，连接器 v0.9 对「观众」事件启用 30s 长窗去重，直播页再加同礼物 30s 兜底过滤",
+    "message": "修复切窗口系统瘫痪：连接器 v1.0 加后台可见性诊断，新增防休眠浏览器启动器（关闭后台定时器节流/遮挡窗口降级/渲染器后台化）",
     "tree": tree["sha"],
     "parents": [base_sha],
 })

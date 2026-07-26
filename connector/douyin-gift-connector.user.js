@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         观俗·执镜 直播礼物连接器（测试号专用）
 // @namespace    guansu-zhijing
-// @version      0.9
+// @version      1.0
 // @description  ⚠ 灰色路径，仅限测试号验证流程：监听抖音直播间页面聊天区的新礼物消息，POST 到本机直播服务（localhost:7210）。违反平台协议有封号风险，正式经营请改用抖音开放平台官方能力。
 // @match        https://live.douyin.com/*
 // @grant        GM_xmlhttpRequest
@@ -273,9 +273,17 @@
       document.body.appendChild(el);
     }
     const extra = unmapped.size ? ` · 未映射 ${unmapped.size} 种` : '';
-    el.textContent = `观俗连接器 ${connected ? '●' : '○'} 已转发 ${sent} 件礼物${extra}`;
+    const bg = document.hidden ? ' · 后台中' : '';
+    el.textContent = `观俗连接器 ${connected ? '●' : '○'} 已转发 ${sent} 件礼物${extra}${bg}`;
     el.style.background = connected ? '#3d5a52' : '#9e2b25';
   }
+
+  // 后台可见性诊断：页面被隐藏/遮挡时浏览器会节流轮询定时器（最小化则直接停渲染），
+  // 角标显示「后台中」并记录调试日志；若未用防休眠参数启动浏览器，后台期间可能漏礼物
+  document.addEventListener('visibilitychange', () => {
+    badge();
+    gmPost(DEBUG, { kind: 'visibility', url: location.href, text: document.hidden ? 'hidden' : 'visible' });
+  });
 
   setTimeout(() => {
     observer.observe(document.body, { childList: true, subtree: true });
@@ -283,7 +291,7 @@
     badge();
     ping();
     setInterval(ping, 15000);
-    gmPost(DEBUG, { kind: 'startup', url: location.href, version: '0.9', purged });
-    console.log('[观俗连接器] v0.9 已启动（监听+轮询双通道，「观众」兜底事件 30s 长窗去重）。已学会', Object.keys(srcMap).length, '种礼物图映射。');
+    gmPost(DEBUG, { kind: 'startup', url: location.href, version: '1.0', purged, hidden: document.hidden });
+    console.log('[观俗连接器] v1.0 已启动（双通道+「观众」30s 长窗去重+后台可见性诊断）。已学会', Object.keys(srcMap).length, '种礼物图映射。');
   }, 3000);
 })();
