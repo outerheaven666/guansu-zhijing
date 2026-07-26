@@ -31,7 +31,6 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "connector/douyin-gift-connector.user.js",
     "connector/启动防休眠浏览器.bat",
     "app/scripts/push-via-api.py",
 ]
@@ -52,7 +51,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "修复切窗口系统瘫痪：连接器 v1.0 加后台可见性诊断，新增防休眠浏览器启动器（关闭后台定时器节流/遮挡窗口降级/渲染器后台化）",
+    "message": "启动器改进：检测浏览器已运行时明确警告（防休眠参数只对全新启动生效），窗口停留等用户确认，不再自动关闭",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
