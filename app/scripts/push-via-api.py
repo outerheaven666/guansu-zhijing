@@ -31,7 +31,9 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "connector/启动防休眠浏览器.bat",
+    "app/src/live/pools.ts",
+    "app/src/live/App.tsx",
+    "app/src/live/tiers.ts",
     "app/scripts/push-via-api.py",
 ]
 
@@ -51,7 +53,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "修复启动器乱码：批处理改用 GBK 编码 + CRLF 换行（cmd 不识别 UTF-8/LF），修正 nul 重定向",
+    "message": "根治节气签雷同：主角区三行改从镜语36/功课26/雅趣24独立池按昵称种子拈取（约2.2万种组合，与共享节气资料脱钩）；故人签/观心签新增持签功课行；观心签三问限两行防溢出",
     "tree": tree["sha"],
     "parents": [base_sha],
 })

@@ -29,7 +29,7 @@ export const GIFT_TIERS: GiftTier[] = [
     maxDiamond: 49,
     examples: '小心心 / 玫瑰 / 啤酒',
     serviceName: '节气签',
-    serviceDesc: '当令节气文化卡：昵称入卡，含干支、三候、民俗与诗句',
+    serviceDesc: '当令节气文化卡：昵称入卡，主角区按昵称种子拈出「镜语·功课·雅趣」三行（三大独立签池，约 2.2 万种组合，一人一签）',
     plainDesc: '借老祖宗的时令智慧给你一个节拍：天地正走到哪一步，你的生活该为什么留心、为什么松手',
     displaySeconds: 12,
     perks: ['专属昵称节气卡 ×1', '上屏展示 12 秒'],

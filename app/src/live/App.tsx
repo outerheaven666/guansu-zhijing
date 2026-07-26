@@ -4,7 +4,7 @@ import { QUOTES, THEME_LABELS, TRADITION_META, type Theme } from '@/shared/quote
 import { JIEQI_INFO } from '@/shared/jieqi';
 import { readCalendar } from '@/shared/ganzhi';
 import { drawMirrorCard, drawShareCard, wrapText } from '@/shared/sharecard';
-import { FIGURE_LOTS, NARRATIVE_LOTS, DAILY_LOTS, drawFromPool } from './pools';
+import { FIGURE_LOTS, NARRATIVE_LOTS, DAILY_LOTS, MIRROR_LOTS, PASTIME_LOTS, drawFromPool } from './pools';
 import { trackEvent } from '@/shared/analytics';
 import { ErrorBoundary } from '@/shared/ErrorBoundary';
 
@@ -64,28 +64,22 @@ function buildWarmItems(): WarmItem[] {
 
 /* ================= 卡片生成 ================= */
 
-/** 昵称种子：同一昵称同一天同一节气，拈选结果可复现；不同昵称结果不同 */
-function seedOf(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h;
-}
-
 function makeTermCard(nickname: string, cardNo: string): string {
   const termName = currentTermName();
   const info = JIEQI_INFO[termName];
   const today = new Date();
   const r = readCalendar(today.getFullYear(), today.getMonth() + 1, today.getDate());
-  // 个人拈选：以「昵称+日期+节气」为种，从三候与民俗中各拈一条——同一节气，一人一签
-  const seed = seedOf(`${nickname}::${r.year}-${r.month}-${r.day}::${termName}`);
-  const hou = info.phenology[seed % info.phenology.length];
-  const customBits = info.customs.split(/[；;。]/).map((s) => s.trim()).filter((s) => s.length >= 4);
-  const ya = customBits.length > 0 ? customBits[seed % customBits.length] : '';
-  const personal = [`为你拈得 · ${hou}`];
-  if (ya) personal.push(`今日雅事 · ${ya}`);
-  // 今日功课：从起居/体察/复盘/时令四池拈一（池最大，越便宜越多变体）
-  const { item: daily } = drawFromPool(DAILY_LOTS, `${nickname}::${r.year}-${r.month}-${r.day}::${termName}::daily`);
-  personal.push(`${daily.kind} · ${daily.text}`);
+  // 一人一签：三行全部从「与节气共享资料脱钩」的独立大池按昵称种子拈取，
+  // 镜语 36 × 功课 26 × 雅趣 24 ≈ 2.2 万种组合——同人当天固定，异人异签
+  const dayKey = `${r.year}-${r.month}-${r.day}::${termName}`;
+  const { item: mj } = drawFromPool(MIRROR_LOTS, `${nickname}::${dayKey}::mirror`);
+  const { item: gk } = drawFromPool(DAILY_LOTS, `${nickname}::${dayKey}::daily`);
+  const { item: yq } = drawFromPool(PASTIME_LOTS, `${nickname}::${dayKey}::pastime`);
+  const personal = [
+    `镜语 · ${mj.text}`,
+    `${gk.kind}功课 · ${gk.text}`,
+    `雅趣 · ${yq.text}`,
+  ];
   const canvas = document.createElement('canvas');
   drawShareCard(canvas, {
     termName: info.name,
@@ -187,12 +181,18 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   ctx.fillStyle = '#9e2b25';
   ctx.font = `26px ${KAI}`;
   wrapText(ctx, item.mirror, W - 180).slice(0, 3).forEach((l, i) => ctx.fillText(l, 90, 640 + i * 44));
-  // 换作是你
+  // 换作是你（限两行，给持签功课留出位置）
   ctx.fillStyle = '#3d5a52';
   ctx.font = `24px ${KAI}`;
   ctx.fillText('换 作 是 你', 90, 806);
   ctx.fillStyle = '#5c5548';
-  wrapText(ctx, item.ask, W - 180).slice(0, 3).forEach((l, i) => ctx.fillText(l, 90, 850 + i * 40));
+  wrapText(ctx, item.ask, W - 180).slice(0, 2).forEach((l, i) => ctx.fillText(l, 90, 850 + i * 40));
+  // 持签功课：按昵称+礼物从功课池拈取——同一支故人签，不同人也有专属一行
+  const { item: hw } = drawFromPool(DAILY_LOTS, `${nickname}::${giftName}::fig-hw`);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8a6d2f';
+  ctx.font = `22px ${KAI}`;
+  ctx.fillText(`持签功课 · ${hw.text}`, W / 2, 950);
   // 页脚（出处为每签不同，保留墨色；雷同提示行淡化）
   ctx.textAlign = 'center';
   ctx.fillStyle = '#5c5548';
@@ -243,7 +243,7 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
   ctx.fillText(`「${item.label}」`, W / 2, 316);
   ctx.fillStyle = '#9e2b25';
   ctx.fillRect(W / 2 - 40, 344, 80, 4);
-  // 三问
+  // 三问（每问限两行：防极端长文顶到页脚，并给持签功课留位）
   const steps: Array<[string, string, string]> = [
     ['一 问 · 溯源', item.q1, '#9e2b25'],
     ['二 问 · 代价', item.q2, '#8a6d2f'],
@@ -257,10 +257,16 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
     ctx.fillText(title, 90, y);
     ctx.fillStyle = '#2b2620';
     ctx.font = `24px ${KAI}`;
-    const lines: string[] = wrapText(ctx, text, W - 180).slice(0, 3);
+    const lines: string[] = wrapText(ctx, text, W - 180).slice(0, 2);
     lines.forEach((l: string, i: number) => ctx.fillText(l, 90, y + 44 + i * 38));
     y += 44 + lines.length * 38 + 36;
   }
+  // 持签功课：按昵称+礼物从功课池拈取——同一套练习，不同人也有专属一行
+  const { item: hw } = drawFromPool(DAILY_LOTS, `${nickname}::${giftName}::nv-hw`);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8a6d2f';
+  ctx.font = `22px ${KAI}`;
+  ctx.fillText(`持签功课 · ${hw.text}`, W / 2, Math.min(y + 46, 950));
   ctx.textAlign = 'center';
   ctx.fillStyle = '#8a8070';
   ctx.font = `18px ${KAI}`;

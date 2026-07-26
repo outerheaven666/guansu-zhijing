@@ -287,6 +287,95 @@ export const DAILY_LOTS: DailyLot[] = [
   { id: 'dl-sl-guanfu', kind: '时令', text: '反复的小烦恼，今天只观察不处理' },
 ];
 
+/**
+ * 节气签「镜语」池（t1 主角区第一行）：六部经典 + 《黄帝内经》的短句配微行动。
+ * 与当日节气资料完全脱钩，按昵称种子抽取——一人一签，不与共享区重复。
+ */
+export interface MirrorLot {
+  id: string;
+  text: string; // 「短句 · 微行动」，控制在 22 字以内
+}
+
+export const MIRROR_LOTS: MirrorLot[] = [
+  // 道德经
+  { id: 'mj-ddj-shao', text: '少则得 · 今天只成全一件要事' },
+  { id: 'mj-ddj-zhizhi', text: '知止不殆 · 给最用力的事画条止线' },
+  { id: 'mj-ddj-shui', text: '上善若水 · 先流向低处，让一次' },
+  { id: 'mj-ddj-qianli', text: '千里之行 · 现在就做五分钟版本' },
+  { id: 'mj-ddj-dayin', text: '大音希声 · 少说一句，多听一句' },
+  { id: 'mj-ddj-risun', text: '为道日损 · 删掉一件不产生复利的事' },
+  // 庄子
+  { id: 'mj-zz-jingwa', text: '井蛙语海 · 找一个「井外」的人聊聊' },
+  { id: 'mj-zz-wuyong', text: '无用之用 · 留一小时给没用的事' },
+  { id: 'mj-zz-anshi', text: '安时处顺 · 把不可控的放下半日' },
+  { id: 'mj-zz-xushi', text: '虚室生白 · 晨起静坐一刻，不看手机' },
+  { id: 'mj-zz-jianghu', text: '相忘江湖 · 给彼此一点舒展的水域' },
+  { id: 'mj-zz-mengdie', text: '庄周梦蝶 · 换个身份重写烦心事' },
+  // 孙子
+  { id: 'mj-sz-xiansheng', text: '先胜后战 · 出手前先补足三个条件' },
+  { id: 'mj-sz-xushi', text: '避实击虚 · 绕开正面，找你的虚处' },
+  { id: 'mj-sz-guisheng', text: '兵贵胜不贵久 · 给拖最久的事定决战周' },
+  { id: 'mj-sz-zali', text: '杂于利害 · 利与害各写三条再定' },
+  { id: 'mj-sz-zhizhan', text: '知可以战 · 不该接的仗就不接' },
+  { id: 'mj-sz-wushi', text: '无恃其不来 · 为最担心的风险写预案' },
+  // 毛选
+  { id: 'mj-mao-diaocha', text: '没有调查 · 核实一条听来的判断' },
+  { id: 'mj-mao-maodun', text: '主要矛盾 · 先解那件一解百松的' },
+  { id: 'mj-mao-shishi', text: '实事求是 · 记一小时求是而非许愿' },
+  { id: 'mj-mao-xinghuo', text: '星星之火 · 给最小的火种半小时氧气' },
+  { id: 'mj-mao-changli', text: '亲自尝梨 · 用最小成本直接试一口' },
+  { id: 'mj-mao-mieshi', text: '战略藐视 · 大胆定调，细致拆解' },
+  // 易经
+  { id: 'mj-yj-shi', text: '与时偕行 · 写下你在等的那个信号' },
+  { id: 'mj-yj-wei', text: '当位 · 名不副实的用力，省一分' },
+  { id: 'mj-yj-bian', text: '穷则变 · 动那个最能翻盘的变量' },
+  { id: 'mj-yj-xian', text: '习坎有孚 · 给风险画一条止损线' },
+  { id: 'mj-yj-qian', text: '谦受益 · 今天向一个人真心请教' },
+  { id: 'mj-yj-guanfu', text: '观复 · 看一件反复小事的循环' },
+  // 阴符经 / 黄帝内经
+  { id: 'mj-yfj-guantian', text: '观天之道 · 让一件安排顺着节律走' },
+  { id: 'mj-yfj-mu', text: '机在目 · 给最扰心的入口设道闸' },
+  { id: 'mj-yfj-qiaozhuo', text: '性有巧拙 · 巧处藏一分，拙处亮一次' },
+  { id: 'mj-hdnj-qiju', text: '起居有常 · 今晚提前半小时睡' },
+  { id: 'mj-hdnj-yinshi', text: '食饮有节 · 一餐七分饱就停筷' },
+  { id: 'mj-hdnj-zhiwei', text: '不治已病 · 记下身体一个小信号' },
+];
+
+/**
+ * 节气签「雅趣」池（t1 主角区第三行）：传统雅事的现代五分钟版本。
+ */
+export interface PastimeLot {
+  id: string;
+  text: string; // 「雅事 · 现代微版本」，控制在 20 字以内
+}
+
+export const PASTIME_LOTS: PastimeLot[] = [
+  { id: 'yq-tingyu', text: '听雨 · 睡前听十分钟雨声' },
+  { id: 'yq-pinming', text: '品茗 · 认真泡一杯，三口慢饮' },
+  { id: 'yq-fenxiang', text: '焚香 · 点一支香，静坐五分钟' },
+  { id: 'yq-fuqin', text: '抚琴 · 听一曲古琴《流水》' },
+  { id: 'yq-duiyi', text: '对弈 · 下一盘棋或打一局残谱' },
+  { id: 'yq-guanyun', text: '观云 · 抬头看云三分钟，认一种云' },
+  { id: 'yq-houyue', text: '候月 · 今晚看一眼月亮再睡' },
+  { id: 'yq-naliang', text: '纳凉 · 寻一处树荫坐一刻钟' },
+  { id: 'yq-shihua', text: '莳花 · 给绿植浇次水、擦片叶' },
+  { id: 'yq-dushu', text: '读书 · 读两页纸质书再碰手机' },
+  { id: 'yq-xiezi', text: '写字 · 提笔抄一句喜欢的诗' },
+  { id: 'yq-huashan', text: '画扇 · 在纸上随意画几笔兰草' },
+  { id: 'yq-zhuanke', text: '篆刻 · 在橡皮上刻一个自己的姓' },
+  { id: 'yq-tingxi', text: '听戏 · 听一段昆曲或京剧选段' },
+  { id: 'yq-fanzhou', text: '泛舟 · 去水边走走，看一次倒影' },
+  { id: 'yq-denggao', text: '登高 · 上楼顶或山坡远眺一次' },
+  { id: 'yq-fangyou', text: '访友 · 约一位久未联系的人说说话' },
+  { id: 'yq-shaishu', text: '晒书 · 把一本书摊在阳光下翻翻' },
+  { id: 'yq-shiye', text: '拾叶 · 捡一片好看的叶子夹进书里' },
+  { id: 'yq-guanyu', text: '观鱼 · 看五分钟游鱼或水波' },
+  { id: 'yq-wenxiang', text: '闻香 · 细细分辨一种今天的味道' },
+  { id: 'yq-xingchan', text: '行禅 · 慢走十分钟，只数脚步' },
+  { id: 'yq-jingzuo', text: '静坐 · 正坐五分钟，脊直肩松' },
+  { id: 'yq-yehua', text: '夜话 · 和家人说一件今天的小事' },
+];
+
 /** 种子抽取（确定性，可复现可核对） */
 export function drawFromPool<T>(pool: T[], seedStr: string): { item: T; no: number } {
   let h = 0;
