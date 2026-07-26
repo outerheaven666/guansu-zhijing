@@ -51,7 +51,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "启动器改进：检测浏览器已运行时明确警告（防休眠参数只对全新启动生效），窗口停留等用户确认，不再自动关闭",
+    "message": "修复启动器乱码：批处理改用 GBK 编码 + CRLF 换行（cmd 不识别 UTF-8/LF），修正 nul 重定向",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
