@@ -32,6 +32,9 @@ def api(method, path, payload=None):
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
     "app/src/live/App.tsx",
+    "app/src/live/tiers.ts",
+    "app/src/shared/sharecard.ts",
+    "app/src/shared/quotes.ts",
     "app/scripts/push-via-api.py",
 ]
 
@@ -51,7 +54,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "直播页加版本角标（v1.5）：现场确认页面是否为最新版，避免浏览器/OBS缓存旧代码误导排查",
+    "message": "合规换血防再封：签全部改卡（节气卡/执镜卡/故人卡/观心卡），直播卡移除干支显示，删除含触发词的否定式声明改为正面表述，版本角标 v1.6",
     "tree": tree["sha"],
     "parents": [base_sha],
 })

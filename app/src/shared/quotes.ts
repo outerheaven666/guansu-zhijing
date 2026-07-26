@@ -6,11 +6,11 @@
 export type Tradition = 'zhuangzi' | 'daodejing' | 'sunzi' | 'mao' | 'yinfujing';
 
 export const TRADITION_META: Record<Tradition, { name: string; lens: string; color: string; mirror: string; lensDesc: string }> = {
-  zhuangzi: { name: '庄子', lens: '换视角', color: 'text-pine', mirror: '蝶梦签', lensDesc: '这面镜子不评判对错，只把你带到另一个位置，让你看见站在原地看不见的那一面。' },
-  daodejing: { name: '道德经', lens: '做减法', color: 'text-gold', mirror: '水镜签', lensDesc: '这面镜子不教你再加什么，只轻声问一句：哪一件，其实可以放下了。' },
-  sunzi: { name: '孙子兵法', lens: '评估代价', color: 'text-cinnabar', mirror: '庙算签', lensDesc: '这面镜子不许诺胜利，只逼你在出手之前，把成本、胜率与退路摆到桌面上。' },
-  mao: { name: '毛泽东选集', lens: '逼拿事实', color: 'text-cinnabar', mirror: '求是签', lensDesc: '这面镜子不相信感觉，只相信你亲手查到的、亲眼看到的、亲自试过的东西。' },
-  yinfujing: { name: '阴符经', lens: '观机深读', color: 'text-pine', mirror: '枢机签', lensDesc: '这面镜子一次只取一句：请你慢慢读，看同一句话如何在自然、做事与习惯三层同时成立——多解并存，正是它的练法。' },
+  zhuangzi: { name: '庄子', lens: '换视角', color: 'text-pine', mirror: '蝶梦镜', lensDesc: '这面镜子不评判对错，只把你带到另一个位置，让你看见站在原地看不见的那一面。' },
+  daodejing: { name: '道德经', lens: '做减法', color: 'text-gold', mirror: '水镜', lensDesc: '这面镜子不教你再加什么，只轻声问一句：哪一件，其实可以放下了。' },
+  sunzi: { name: '孙子兵法', lens: '评估代价', color: 'text-cinnabar', mirror: '庙算镜', lensDesc: '这面镜子不许诺胜利，只逼你在出手之前，把成本、胜率与退路摆到桌面上。' },
+  mao: { name: '毛泽东选集', lens: '逼拿事实', color: 'text-cinnabar', mirror: '求是镜', lensDesc: '这面镜子不相信感觉，只相信你亲手查到的、亲眼看到的、亲自试过的东西。' },
+  yinfujing: { name: '阴符经', lens: '观机深读', color: 'text-pine', mirror: '枢机镜', lensDesc: '这面镜子一次只取一句：请你慢慢读，看同一句话如何在自然、做事与习惯三层同时成立——多解并存，正是它的练法。' },
 };
 
 export type Theme =

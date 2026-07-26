@@ -57,7 +57,7 @@ function buildWarmItems(): WarmItem[] {
   }
   for (let i = 0; i < 2; i++) {
     const d = DAILY_LOTS[(daySeed * 5 + i * 11) % DAILY_LOTS.length];
-    items.push({ tag: `今日功课 · ${d.kind}`, text: d.text, sub: '刷个小心心，拈一张写着你名字的节气签' });
+    items.push({ tag: `今日功课 · ${d.kind}`, text: d.text, sub: '刷个小心心，领一张写着你名字的节气卡' });
   }
   return items;
 }
@@ -86,7 +86,7 @@ function makeTermCard(nickname: string, cardNo: string): string {
     pinyin: info.pinyin,
     longitude: info.longitude,
     dateLabel: `${r.year} 年 ${r.month} 月 ${r.day} 日`,
-    pillars: `${r.yearPillar}年  ${r.monthPillar}月  ${r.dayPillar}日`,
+    pillars: '', // 直播卡不显示干支（避免被判为命理排盘；观俗主应用保留显示）
     daysText: `正值${info.name}时节`,
     phenology: info.phenology,
     customs: info.customs,
@@ -121,7 +121,7 @@ function makeMirrorCard(nickname: string, theme: Theme, cardNo: string, salt: st
   const canvas = document.createElement('canvas');
   drawMirrorCard(canvas, {
     nickname: truncNick(nickname),
-    serviceName: '执镜签',
+    serviceName: '执镜卡',
     themeLabel: THEME_LABELS[theme],
     traditionName: meta.name,
     lens: meta.lens,
@@ -155,7 +155,7 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   ctx.textAlign = 'center';
   ctx.fillStyle = '#8a8070';
   ctx.font = `20px ${KAI}`;
-  ctx.fillText('观 俗 · 故 人 签', W / 2, 104);
+  ctx.fillText('观 俗 · 故 人 卡', W / 2, 104);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#3d5a52';
   ctx.font = `22px ${KAI}`;
@@ -192,7 +192,7 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   ctx.textAlign = 'center';
   ctx.fillStyle = '#8a6d2f';
   ctx.font = `22px ${KAI}`;
-  ctx.fillText(`持签功课 · ${hw.text}`, W / 2, 950);
+  ctx.fillText(`今日功课 · ${hw.text}`, W / 2, 950);
   // 页脚（出处为每签不同，保留墨色；雷同提示行淡化）
   ctx.textAlign = 'center';
   ctx.fillStyle = '#5c5548';
@@ -200,7 +200,7 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   ctx.fillText(`—— ${item.source}`, W / 2, 986);
   ctx.fillStyle = '#8a8070';
   ctx.font = `18px ${KAI}`;
-  ctx.fillText('他走过的路，是你的一面镜子 · 文化内容，非命运暗示', W / 2, 1024);
+  ctx.fillText('他走过的路，是你的一面镜子 · 传统文化内容', W / 2, 1024);
   ctx.fillText('观俗 GUANSU', W / 2, 1052);
   return canvas.toDataURL('image/png');
 }
@@ -223,7 +223,7 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#8a8070';
   ctx.font = `20px ${KAI}`;
-  ctx.fillText('观 俗 · 观 心 签', W / 2, 104);
+  ctx.fillText('观 俗 · 观 心 卡', W / 2, 104);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#3d5a52';
   ctx.font = `22px ${KAI}`;
@@ -266,18 +266,18 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#8a6d2f';
   ctx.font = `22px ${KAI}`;
-  ctx.fillText(`持签功课 · ${hw.text}`, W / 2, Math.min(y + 46, 950));
+  ctx.fillText(`今日功课 · ${hw.text}`, W / 2, Math.min(y + 46, 950));
   ctx.textAlign = 'center';
   ctx.fillStyle = '#8a8070';
   ctx.font = `18px ${KAI}`;
-  ctx.fillText('自我叙事练习 · 不是推算 · 答案写不写，由你', W / 2, 1014);
+  ctx.fillText('自我叙事练习 · 答案写不写，由你', W / 2, 1014);
   ctx.fillText('观俗 GUANSU', W / 2, 1046);
   return canvas.toDataURL('image/png');
 }
 
 function cardsForEvent(e: GiftEvent, theme: Theme, seq: number): { tier: GiftTier; cards: string[] } {
   const tier = tierOfDiamond(e.diamond);
-  const cardNo = `第 ${seq} 签 · 本场唯一`;
+  const cardNo = `第 ${seq} 张 · 本场限定`;
   const cards: string[] = [];
   // 四档四池，互不叠加：每一档从自己规格的签池中独立随机
   if (tier.id === 't1') cards.push(makeTermCard(e.nickname, cardNo));
@@ -290,7 +290,7 @@ function cardsForEvent(e: GiftEvent, theme: Theme, seq: number): { tier: GiftTie
 /* ================= 主界面 ================= */
 
 /** 版本角标：每次部署递增，用于现场确认页面是否为最新版（防缓存误导排查） */
-const LIVE_VERSION = 'v1.5 · 07-26';
+const LIVE_VERSION = 'v1.6 · 07-26';
 
 interface ActiveShow {
   event: GiftEvent;
@@ -469,7 +469,7 @@ function LiveApp() {
         <span className="anim-ember absolute right-[38%] bottom-[24%] h-1.5 w-1.5 rounded-full bg-pine opacity-30" />
       </div>
       <div className="anim-breathe font-brush text-6xl ink-title">以文会友</div>
-      <p className="mt-4 text-base ink-sub">拈一段传统智慧，照一照当下的自己 · 签无吉凶，皆是镜子</p>
+      <p className="mt-4 text-base ink-sub">撷一段传统智慧，照一照当下的自己 · 每张卡，都是一面镜子</p>
       {/* 暖场轮播：每 8 秒自动换一条，待机也有内容在流动 */}
       <div className="mx-auto mt-6 max-w-xl" key={warmIdx}>
         <div className="anim-fade-in rounded-xl border hairline px-6 py-4">
@@ -496,7 +496,7 @@ function LiveApp() {
           ))}
         </div>
         <div className="mt-3 text-center text-xs ink-sub">
-          随机拈取的文化内容，可复现可核对 · 签号唯一，昵称入卡 · 不预测、不占卜、不承诺改运
+          内容按昵称随机生成，可复现可核对 · 编号唯一，昵称入卡 · 传统文化分享
         </div>
       </div>
       )}
@@ -551,7 +551,7 @@ function LiveApp() {
               ))}
             </div>
             <div className="mt-3 border-t hairline pt-2 text-center text-xs ink-sub">
-              随机拈取 · 可复现可核对 · 签号唯一，昵称入卡 · 不预测、不占卜
+              内容随机生成 · 可复现可核对 · 编号唯一，昵称入卡 · 传统文化分享
             </div>
           </div>
 
@@ -598,7 +598,7 @@ function LiveApp() {
           <div className="anim-marquee flex w-max whitespace-nowrap text-xs ink-sub">
             {[0, 1].map((k) => (
               <span key={k}>
-                {'刷礼物即上屏 · 先到先得　▏　节气签 ← 小心心 / 玫瑰　▏　执镜签 ← 你真好看 / 墨镜　▏　故人签 ← 热气球 / 马车　▏　观心签 ← 火箭 / 嘉年华　▏　签无吉凶，皆是镜子　▏　文化内容 · 不预测 · 不占卜 · 不承诺改运　▏　'}
+                {'刷礼物即上屏 · 先到先得　▏　节气卡 ← 小心心 / 玫瑰　▏　执镜卡 ← 你真好看 / 墨镜　▏　故人卡 ← 热气球 / 马车　▏　观心卡 ← 火箭 / 嘉年华　▏　每张卡都是一面镜子　▏　传统文化 · 民俗与经典阅读分享　▏　'}
               </span>
             ))}
           </div>
@@ -615,7 +615,7 @@ function LiveApp() {
           <span className="seal h-12 w-7 text-xs">直播</span>
           <div className="min-w-0 flex-1">
             <h1 className="ink-title text-lg font-bold">观俗 · 执镜 直播互动台</h1>
-            <p className="text-[11px] ink-sub">礼物分档 → 差异化文化内容服务 · OBS 浏览器源直接上屏 · 文化内容，不含预测 · {LIVE_VERSION}</p>
+            <p className="text-[11px] ink-sub">礼物分档 → 差异化文化内容服务 · OBS 浏览器源直接上屏 · 传统文化内容分享 · {LIVE_VERSION}</p>
           </div>
           <div className="flex gap-2 text-xs">
             <button className="tab-ink" data-active={mode === 'sim'} onClick={() => setMode('sim')}>演示模式</button>
@@ -781,8 +781,8 @@ window.__gzLiveGift({ id, nickname, giftName, diamond });`}
         {/* 合规页脚 */}
         <footer className="mt-4 rounded-lg border-l-4 p-3 text-[11px] leading-relaxed ink-sub" style={{ borderLeftColor: 'hsl(var(--cinnabar))', background: 'hsl(4 40% 96%)' }}>
           <span className="font-bold text-cinnabar">合规底线：</span>
-          本互动台交付物全部为文化内容（节气民俗、经典引文、叙事练习），不提供任何预测、算命、占卜服务；
-          直播口播请勿承诺「改运」「灵验」；须按平台规则提示「未成年人禁止打赏」；
+          本互动台交付物全部为传统文化内容（节气民俗、经典引文、叙事练习），属知识分享性质；
+          直播口播请围绕民俗与经典讲解，勿谈个人运气；须按平台规则提示「未成年人禁止打赏」；
           礼物数据正式经营请使用抖音开放平台官方能力，非官方抓取方式有封号风险。
         </footer>
       </div>

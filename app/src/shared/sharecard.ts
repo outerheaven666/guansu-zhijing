@@ -120,7 +120,7 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
     // 直播签卡：日期干支（当日众人相同）淡化为一行小字
     ctx.fillStyle = INK_FAINT;
     ctx.font = `20px ${KAI}`;
-    ctx.fillText(`${d.dateLabel} · ${d.pillars} · ${d.daysText}`, W / 2, 340);
+    ctx.fillText([d.dateLabel, d.pillars, d.daysText].filter(Boolean).join(' · '), W / 2, 340);
 
     // 主角区：个人拈选（一人一签）朱砂浅底横幅，字号按行宽自适应防出格
     ctx.fillStyle = '#efe3d0';
@@ -131,7 +131,7 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
     ctx.stroke();
     ctx.fillStyle = CINNABAR;
     ctx.font = `20px ${KAI}`;
-    ctx.fillText('为 你 拈 得 · 一 人 一 签', W / 2, 412);
+    ctx.fillText('为 你 生 成 · 一 人 一 张', W / 2, 412);
     ctx.fillStyle = INK;
     d.personal!.slice(0, 3).forEach((p, i) => {
       let f = 27;
@@ -169,7 +169,7 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
 
   // 页脚
   ctx.font = `18px ${KAI}`;
-  ctx.fillText('文化理解，而非预测 · 观俗 GUANSU', W / 2, hasPersonal ? 1030 : 1050);
+  ctx.fillText('节气民俗 · 传统文化分享 · 观俗 GUANSU', W / 2, hasPersonal ? 1030 : 1050);
 }
 
 /** ============ 执镜签（直播引文卡） ============ */
@@ -292,6 +292,6 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
   ctx.textAlign = 'center';
   ctx.fillStyle = INK_FAINT;
   ctx.font = `18px ${KAI}`;
-  ctx.fillText('引文只提供看问题的角度 · 不预测 不诊断 不承诺改命', W / 2, 1014);
+  ctx.fillText('经典引文 · 只提供看问题的角度 · 非医疗法律财务建议', W / 2, 1014);
   ctx.fillText('执镜 ZHIJING', W / 2, 1046);
 }
