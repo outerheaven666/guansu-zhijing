@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GIFT_TIERS, currentTermName, drawLotFor, estimatePayoutYuan, tierOfDiamond, type GiftTier } from './tiers';
 import { QUOTES, THEME_LABELS, TRADITION_META, type Theme } from '@/shared/quotes';
 import { JIEQI_INFO } from '@/shared/jieqi';
@@ -38,29 +38,6 @@ const SIM_GIFTS = [
   { giftName: '嘉年华', diamond: 3000 },
 ];
 const SIM_NAMES = ['青梅煮酒', '终南过客', '采薇', '南山下', '听松', '一苇渡江', '知行合一'];
-
-/** 待机暖场条目：当令节气 + 按日轮换的经典与功课，保证无人刷礼物时画面内容也在流动 */
-interface WarmItem { tag: string; text: string; sub: string }
-function buildWarmItems(): WarmItem[] {
-  const term = JIEQI_INFO[currentTermName()];
-  const daySeed = Math.floor(Date.now() / 86400000);
-  const items: WarmItem[] = [
-    {
-      tag: `当令 · ${term.name}`,
-      text: term.phenology.join('　'),
-      sub: `「${term.poem.line}」—— ${term.poem.source}`,
-    },
-  ];
-  for (let i = 0; i < 3; i++) {
-    const q = QUOTES[(daySeed * 7 + i * 19) % QUOTES.length];
-    items.push({ tag: `暖场 · ${TRADITION_META[q.tradition].name}`, text: q.text, sub: `${q.source} · ${q.ask}` });
-  }
-  for (let i = 0; i < 2; i++) {
-    const d = DAILY_LOTS[(daySeed * 5 + i * 11) % DAILY_LOTS.length];
-    items.push({ tag: `今日功课 · ${d.kind}`, text: d.text, sub: '刷个小心心，领一张写着你名字的节气卡' });
-  }
-  return items;
-}
 
 /* ================= 卡片生成 ================= */
 
@@ -137,8 +114,8 @@ function makeMirrorCard(nickname: string, theme: Theme, cardNo: string, salt: st
 }
 
 
-function makeFigureCard(nickname: string, giftName: string, cardNo: string): string {
-  const { item, no } = drawFromPool(FIGURE_LOTS, `${nickname}::${giftName}::figure`);
+function makeFigureCard(nickname: string | undefined, giftName: string, cardNo: string): string {
+  const { item, no } = drawFromPool(FIGURE_LOTS, `${nickname ?? '展'}::${giftName}::figure`);
   const canvas = document.createElement('canvas');
   const W = 720, H = 1080;
   canvas.width = W;
@@ -160,13 +137,17 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   ctx.fillStyle = '#3d5a52';
   ctx.font = `22px ${KAI}`;
   ctx.fillText(`故人镜 · 第${cnNum(no)}号`, 70, 88);
-  ctx.textAlign = 'right';
-  ctx.fillStyle = '#9e2b25';
-  ctx.fillText(cardNo, W - 70, 88);
+  if (cardNo) {
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#9e2b25';
+    ctx.fillText(cardNo, W - 70, 88);
+  }
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#9e2b25';
-  ctx.font = `26px ${KAI}`;
-  ctx.fillText(`赠  @${truncNick(nickname)}`, W / 2, 156);
+  if (nickname) {
+    ctx.fillStyle = '#9e2b25';
+    ctx.font = `26px ${KAI}`;
+    ctx.fillText(`赠  @${truncNick(nickname)}`, W / 2, 156);
+  }
   ctx.fillStyle = '#2b2620';
   ctx.font = `64px ${KAI}`;
   ctx.fillText(item.name, W / 2, 268);
@@ -205,8 +186,8 @@ function makeFigureCard(nickname: string, giftName: string, cardNo: string): str
   return canvas.toDataURL('image/png');
 }
 
-function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): string {
-  const { item, no } = drawFromPool(NARRATIVE_LOTS, `${nickname}::${giftName}::narrative`);
+function makeNarrativeCard(nickname: string | undefined, giftName: string, cardNo: string): string {
+  const { item, no } = drawFromPool(NARRATIVE_LOTS, `${nickname ?? '展'}::${giftName}::narrative`);
   const canvas = document.createElement('canvas');
   const W = 720, H = 1080;
   canvas.width = W;
@@ -228,13 +209,17 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
   ctx.fillStyle = '#3d5a52';
   ctx.font = `22px ${KAI}`;
   ctx.fillText(`叙事练习 · 第${cnNum(no)}号`, 70, 88);
-  ctx.textAlign = 'right';
-  ctx.fillStyle = '#9e2b25';
-  ctx.fillText(cardNo, W - 70, 88);
+  if (cardNo) {
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#9e2b25';
+    ctx.fillText(cardNo, W - 70, 88);
+  }
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#9e2b25';
-  ctx.font = `26px ${KAI}`;
-  ctx.fillText(`赠  @${truncNick(nickname)}`, W / 2, 156);
+  if (nickname) {
+    ctx.fillStyle = '#9e2b25';
+    ctx.font = `26px ${KAI}`;
+    ctx.fillText(`赠  @${truncNick(nickname)}`, W / 2, 156);
+  }
   ctx.fillStyle = '#5c5548';
   ctx.font = `24px ${KAI}`;
   ctx.fillText('你为什么相信这句话——', W / 2, 232);
@@ -275,6 +260,67 @@ function makeNarrativeCard(nickname: string, giftName: string, cardNo: string): 
   return canvas.toDataURL('image/png');
 }
 
+/* ================= 文化展（无人刷礼物时的免费轮播展览） ================= */
+
+/** 展品一：节气大卡（经典原版布局，无个人区、不显示干支） */
+function makeExhibitTermCard(): string {
+  const termName = currentTermName();
+  const info = JIEQI_INFO[termName];
+  const today = new Date();
+  const r = readCalendar(today.getFullYear(), today.getMonth() + 1, today.getDate());
+  const canvas = document.createElement('canvas');
+  drawShareCard(canvas, {
+    termName: info.name,
+    pinyin: info.pinyin,
+    longitude: info.longitude,
+    dateLabel: `${r.year} 年 ${r.month} 月 ${r.day} 日`,
+    pillars: '', // 直播展览不显示干支
+    daysText: `正值${info.name}时节`,
+    phenology: info.phenology,
+    customs: info.customs,
+    poemLine: info.poem.line,
+    poemSource: info.poem.source,
+  });
+  return canvas.toDataURL('image/png');
+}
+
+/** 展品二：经典引文卡（按展序遍历引文库，无昵称无编号） */
+function makeExhibitMirrorCard(step: number): string {
+  const idx = Math.floor(step / 4) % QUOTES.length;
+  const q = QUOTES[idx];
+  const meta = TRADITION_META[q.tradition];
+  const canvas = document.createElement('canvas');
+  drawMirrorCard(canvas, {
+    serviceName: '执镜卡',
+    themeLabel: '经典阅读',
+    traditionName: meta.name,
+    lens: meta.lens,
+    quoteText: q.text,
+    quoteSource: q.source,
+    ask: q.ask,
+    experiment: q.experiment,
+    lotName: `${meta.mirror} · 第${cnNum(idx + 1)}号`,
+    interpretation: meta.lensDesc,
+  });
+  return canvas.toDataURL('image/png');
+}
+
+/** 展品三/四：故人卡、观心卡（无昵称的展品形态） */
+function makeExhibitFigureCard(step: number): string {
+  return makeFigureCard(undefined, `exhibit-fig-${Math.floor(step / 4)}`, '');
+}
+function makeExhibitNarrativeCard(step: number): string {
+  return makeNarrativeCard(undefined, `exhibit-nv-${Math.floor(step / 4)}`, '');
+}
+
+const EXHIBIT_SECONDS = 12;
+const EXHIBIT_KINDS = [
+  { label: '节气展 · 当令', make: makeExhibitTermCard },
+  { label: '经典展 · 引文', make: makeExhibitMirrorCard },
+  { label: '故人展 · 处境', make: makeExhibitFigureCard },
+  { label: '观心展 · 叙事', make: makeExhibitNarrativeCard },
+] as const;
+
 function cardsForEvent(e: GiftEvent, theme: Theme, seq: number): { tier: GiftTier; cards: string[] } {
   const tier = tierOfDiamond(e.diamond);
   const cardNo = `第 ${seq} 张 · 本场限定`;
@@ -290,7 +336,7 @@ function cardsForEvent(e: GiftEvent, theme: Theme, seq: number): { tier: GiftTie
 /* ================= 主界面 ================= */
 
 /** 版本角标：每次部署递增，用于现场确认页面是否为最新版（防缓存误导排查） */
-const LIVE_VERSION = 'v1.6 · 07-26';
+const LIVE_VERSION = 'v1.7 · 07-26';
 
 interface ActiveShow {
   event: GiftEvent;
@@ -346,14 +392,16 @@ function LiveApp() {
   // 对接模式：① 本地直播服务 SSE（同源 /api/events） ② BroadcastChannel ③ window.__gzLiveGift
   const [relayOk, setRelayOk] = useState(false);
 
-  // 待机暖场轮播：每 8 秒换一条，画面始终有内容流动
-  const warmItems = useMemo(buildWarmItems, []);
-  const [warmIdx, setWarmIdx] = useState(0);
+  // 文化展轮播：无人刷礼物 / 无排队时，每 12 秒自动展出一件（节气→经典→故人→观心）
+  const [exhibitStep, setExhibitStep] = useState(0);
+  const [exhibitCard, setExhibitCard] = useState<{ img: string; label: string } | null>(null);
   useEffect(() => {
-    const t = window.setInterval(() => setWarmIdx((i) => (i + 1) % warmItems.length), 8000);
-    return () => window.clearInterval(t);
-  }, [warmItems.length]);
-  const warm = warmItems[warmIdx];
+    if (active || queue.length > 0) return; // 礼物流程优先，展览让位
+    const kind = EXHIBIT_KINDS[exhibitStep % EXHIBIT_KINDS.length];
+    setExhibitCard({ img: kind.make(exhibitStep), label: kind.label });
+    const t = window.setTimeout(() => setExhibitStep((s) => s + 1), EXHIBIT_SECONDS * 1000);
+    return () => window.clearTimeout(t);
+  }, [exhibitStep, active, queue.length]);
   useEffect(() => {
     window.__gzLiveGift = (e) => ingest(e);
     const bc = new BroadcastChannel(CHANNEL);
@@ -457,52 +505,27 @@ function LiveApp() {
       )}
       <div className="mt-3 text-xs ink-sub">长按 / 截图即可带走你的专属卡 · 排队 {queue.length} 位</div>
     </div>
-  ) : (
-    <div className="relative text-center">
-      {/* 待机粒子：缓慢漂移，画面持续微动，防平台误判静止 */}
-      <div aria-hidden className="pointer-events-none absolute -inset-12">
-        <span className="anim-drift-a absolute left-[6%] top-[10%] h-3 w-3 rounded-full bg-cinnabar opacity-20" />
-        <span className="anim-drift-b absolute right-[8%] top-[22%] h-2 w-2 rounded-full bg-pine opacity-25" />
-        <span className="anim-drift-c absolute left-[14%] bottom-[16%] h-2.5 w-2.5 rounded-full bg-gold opacity-25" />
-        <span className="anim-drift-b absolute right-[16%] bottom-[8%] h-3 w-3 rounded-full bg-cinnabar opacity-15" />
-        <span className="anim-ember absolute left-[46%] top-[4%] h-1.5 w-1.5 rounded-full bg-cinnabar opacity-30" />
-        <span className="anim-ember absolute right-[38%] bottom-[24%] h-1.5 w-1.5 rounded-full bg-pine opacity-30" />
+  ) : exhibitCard ? (
+    /* 文化展：免费观看的轮播展览，无人刷礼物时页面也在自动展出 */
+    <div className="flex w-full flex-col items-center">
+      <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
+        <span className="rounded-full bg-pine px-3 py-1 text-sm font-bold text-[hsl(43_40%_96%)]">
+          传统文化展 · 免费观看
+        </span>
+        <span className="text-sm ink-sub">{exhibitCard.label} · 每 {EXHIBIT_SECONDS} 秒自动换展</span>
       </div>
-      <div className="anim-breathe font-brush text-6xl ink-title">以文会友</div>
-      <p className="mt-4 text-base ink-sub">撷一段传统智慧，照一照当下的自己 · 每张卡，都是一面镜子</p>
-      {/* 暖场轮播：每 8 秒自动换一条，待机也有内容在流动 */}
-      <div className="mx-auto mt-6 max-w-xl" key={warmIdx}>
-        <div className="anim-fade-in rounded-xl border hairline px-6 py-4">
-          <div className="text-xs font-bold text-cinnabar">{warm.tag}</div>
-          <div className="mt-1.5 text-lg leading-relaxed ink-title">{warm.text}</div>
-          <div className="mt-1 line-clamp-2 text-xs ink-sub">{warm.sub}</div>
-        </div>
+      <img
+        key={exhibitStep}
+        src={exhibitCard.img}
+        alt="传统文化展览卡"
+        className={`anim-fade-in ${clean ? 'max-h-[82vh]' : 'max-h-[68vh]'} rounded-lg border-2 shadow-xl`}
+        style={{ borderColor: 'hsl(var(--pine))' }}
+      />
+      <div className="mt-3 text-xs ink-sub">
+        展览免费观看 · 刷礼物可将你的名字写入一张卡上屏致谢{queue.length > 0 ? ` · 排队 ${queue.length} 位` : ''}
       </div>
-      {/* 刷什么 → 得什么：普通模式待机时常驻展示；clean 模式移入左栏常驻，此处不再重复 */}
-      {!clean && (
-      <div className="mx-auto mt-6 max-w-lg rounded-xl border-2 p-5 text-left" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
-        <div className="text-center text-lg font-bold text-cinnabar">刷什么 · 得什么</div>
-        <div className="mt-3 space-y-3">
-          {GIFT_TIERS.map((t) => (
-            <div key={t.id} className="text-sm">
-              <div className="flex items-baseline gap-2">
-                <span className="w-44 shrink-0 ink-title font-bold">{t.examples}</span>
-                <span className="shrink-0 text-cinnabar">→</span>
-                <span className="shrink-0 font-bold text-cinnabar">{t.serviceName}</span>
-                <span className="ink-sub text-xs">（约 {t.minDiamond}–{t.maxDiamond === Infinity ? '∞' : t.maxDiamond} 币）</span>
-              </div>
-              <div className="mt-1 pl-1 text-[13px] leading-relaxed ink-sub">{t.plainDesc}</div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 text-center text-xs ink-sub">
-          内容按昵称随机生成，可复现可核对 · 编号唯一，昵称入卡 · 传统文化分享
-        </div>
-      </div>
-      )}
-      {queue.length > 0 && <p className="mt-3 text-base text-cinnabar">准备中……排队 {queue.length} 位</p>}
     </div>
-  );
+  ) : null;
 
   // 排队公示：刷礼物的人实时看到自己排第几、前面还有谁
   const queueStrip = active || queue.length > 0 ? (
@@ -537,7 +560,8 @@ function LiveApp() {
         <aside className="flex w-[360px] shrink-0 flex-col gap-4">
           {/* 刷什么 · 得什么（常驻，手机上也能看清的字号） */}
           <div className="rounded-xl border-2 p-4" style={{ borderColor: 'hsl(var(--cinnabar))' }}>
-            <div className="text-center text-2xl font-bold text-cinnabar">刷什么 · 得什么</div>
+            <div className="text-center text-2xl font-bold text-cinnabar">留名 · 支持</div>
+            <div className="mt-1 text-center text-[13px] ink-sub">展览免费观看 · 刷礼物可将你的名字写入一张卡，上屏致谢</div>
             <div className="mt-3 space-y-3.5">
               {GIFT_TIERS.map((t) => (
                 <div key={t.id}>
@@ -598,7 +622,7 @@ function LiveApp() {
           <div className="anim-marquee flex w-max whitespace-nowrap text-xs ink-sub">
             {[0, 1].map((k) => (
               <span key={k}>
-                {'刷礼物即上屏 · 先到先得　▏　节气卡 ← 小心心 / 玫瑰　▏　执镜卡 ← 你真好看 / 墨镜　▏　故人卡 ← 热气球 / 马车　▏　观心卡 ← 火箭 / 嘉年华　▏　每张卡都是一面镜子　▏　传统文化 · 民俗与经典阅读分享　▏　'}
+                {'传统文化展 · 免费观看 · 每 12 秒自动换展　▏　节气卡 ← 小心心 / 玫瑰　▏　执镜卡 ← 你真好看 / 墨镜　▏　故人卡 ← 热气球 / 马车　▏　观心卡 ← 火箭 / 嘉年华　▏　每张卡都是一面镜子　▏　传统文化 · 民俗与经典阅读分享　▏　'}
               </span>
             ))}
           </div>

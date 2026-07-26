@@ -175,7 +175,7 @@ export function drawShareCard(canvas: HTMLCanvasElement, d: ShareCardData): void
 /** ============ 执镜签（直播引文卡） ============ */
 
 export interface MirrorCardData {
-  nickname: string;
+  nickname?: string;   // 留名卡有昵称；文化展展品卡无昵称
   serviceName: string;   // 签品名，如「执镜签」
   themeLabel: string;    // 本周主题，如「选择与纠结」
   traditionName: string; // 庄子 / 道德经 / 孙子兵法 / 毛泽东选集
@@ -227,9 +227,11 @@ export function drawMirrorCard(canvas: HTMLCanvasElement, d: MirrorCardData): vo
     ctx.textAlign = 'center';
   }
 
-  ctx.fillStyle = CINNABAR;
-  ctx.font = `28px ${KAI}`;
-  ctx.fillText(`赠  @${d.nickname}`, W / 2, 156);
+  if (d.nickname) {
+    ctx.fillStyle = CINNABAR;
+    ctx.font = `28px ${KAI}`;
+    ctx.fillText(`赠  @${d.nickname}`, W / 2, 156);
+  }
 
   ctx.fillStyle = INK_FAINT;
   ctx.font = `20px ${KAI}`;

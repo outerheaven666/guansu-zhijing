@@ -32,9 +32,7 @@ def api(method, path, payload=None):
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
     "app/src/live/App.tsx",
-    "app/src/live/tiers.ts",
     "app/src/shared/sharecard.ts",
-    "app/src/shared/quotes.ts",
     "app/scripts/push-via-api.py",
 ]
 
@@ -54,7 +52,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "合规换血防再封：签全部改卡（节气卡/执镜卡/故人卡/观心卡），直播卡移除干支显示，删除含触发词的否定式声明改为正面表述，版本角标 v1.6",
+    "message": "观众页重构为免费文化展：无人刷礼物时每12秒自动轮播节气/经典/故人/观心四件展品，刷礼物仅作留名致谢插入；礼物菜单改为「留名·支持」表述，版本 v1.7",
     "tree": tree["sha"],
     "parents": [base_sha],
 })
