@@ -31,8 +31,8 @@ def api(method, path, payload=None):
 
 # 本次提交涉及的文件（相对仓库根）
 FILES = [
-    "app/src/shared/sharecard.ts",
     "app/src/live/App.tsx",
+    "connector/douyin-gift-connector.user.js",
     "app/scripts/push-via-api.py",
 ]
 
@@ -52,7 +52,7 @@ for rel in FILES:
 
 tree = api("POST", f"/repos/{REPO}/git/trees", {"base_tree": base_sha, "tree": tree_items})
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "签卡视觉分层：节气签个人拈选升级为朱砂横幅主角区（节气名/三候/民俗/诗句淡化），执镜签/故人签/观心签雷同卡头页脚淡化，突出一人一签的差异内容",
+    "message": "修复重复签卡 bug：连击动画/聊天重渲染产生「观众」兜底昵称的重复上报，连接器 v0.9 对「观众」事件启用 30s 长窗去重，直播页再加同礼物 30s 兜底过滤",
     "tree": tree["sha"],
     "parents": [base_sha],
 })

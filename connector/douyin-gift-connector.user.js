@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         观俗·执镜 直播礼物连接器（测试号专用）
 // @namespace    guansu-zhijing
-// @version      0.8
+// @version      0.9
 // @description  ⚠ 灰色路径，仅限测试号验证流程：监听抖音直播间页面聊天区的新礼物消息，POST 到本机直播服务（localhost:7210）。违反平台协议有封号风险，正式经营请改用抖音开放平台官方能力。
 // @match        https://live.douyin.com/*
 // @grant        GM_xmlhttpRequest
@@ -214,9 +214,12 @@
     // 去重一：同内容 30s（防重渲染）
     const hash = `${gift.nickname}|${gift.giftName}|${gift.diamond}`;
     if (recentHash.has(hash) && now - recentHash.get(hash) < 30000) return;
-    // 去重二：同礼物同数量 3s（同一事件会被连击动画/横幅/面板等多个容器各报一次，昵称解析不一）
+    // 去重二：同礼物同数量。连击动画/聊天列表重渲染会让同一事件被多个容器各报一次，
+    // 其中昵称解析失败的会顶着「观众」兜底名、哈希与首发不同而穿过 去重一——
+    // 故「观众」事件用 30s 长窗（真礼物昵称通常能解析，长窗只杀重复上报），正常事件维持 3s 短窗。
     const giftKey = `${gift.giftName}|${gift.diamond}`;
-    if (recentGiftKey.has(giftKey) && now - recentGiftKey.get(giftKey) < 3000) return;
+    const window2 = gift.nickname === '观众' ? 30000 : 3000;
+    if (recentGiftKey.has(giftKey) && now - recentGiftKey.get(giftKey) < window2) return;
     recentHash.set(hash, now);
     recentGiftKey.set(giftKey, now);
     gmPost(RELAY, { id: `dy-${now}-${Math.random().toString(36).slice(2, 8)}`, ...gift, source: 'douyin-userscript' }, () => {
@@ -280,7 +283,7 @@
     badge();
     ping();
     setInterval(ping, 15000);
-    gmPost(DEBUG, { kind: 'startup', url: location.href, version: '0.7', purged });
-    console.log('[观俗连接器] v0.8 已启动（监听+轮询双通道+双重去重）。已学会', Object.keys(srcMap).length, '种礼物图映射。');
+    gmPost(DEBUG, { kind: 'startup', url: location.href, version: '0.9', purged });
+    console.log('[观俗连接器] v0.9 已启动（监听+轮询双通道，「观众」兜底事件 30s 长窗去重）。已学会', Object.keys(srcMap).length, '种礼物图映射。');
   }, 3000);
 })();

@@ -307,9 +307,19 @@ function LiveApp() {
     }
   });
   const seen = useRef(new Set<string>());
+  const recentContent = useRef(new Map<string, number>()); // giftName|diamond → 时间戳（「观众」兜底事件去重用）
 
   const ingest = useCallback((raw: Omit<GiftEvent, 'at'>) => {
     if (seen.current.has(raw.id)) return; // 幂等去重
+    const now = Date.now();
+    // 「观众」兜底昵称 = 连接器昵称解析失败。30s 内已有同礼物同数量事件时，
+    // 大概率是连击动画/聊天重渲染的重复上报，直接丢弃（真礼物的昵称一般能解析出来）
+    const ck = `${raw.giftName}|${raw.diamond}`;
+    if (raw.nickname === '观众') {
+      const last = recentContent.current.get(ck) ?? 0;
+      if (now - last < 30000) return;
+    }
+    recentContent.current.set(ck, now);
     seen.current.add(raw.id);
     const e: GiftEvent = { ...raw, at: Date.now() };
     setEvents((prev) => [e, ...prev].slice(0, 30));
